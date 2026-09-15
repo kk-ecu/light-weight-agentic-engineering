@@ -54,19 +54,25 @@ if ! command -v uv &> /dev/null; then
 fi
 echo -e "${GREEN}✔ Astral UV ready: $(uv --version)${NC}"
 
-if ! command -v docker &> /dev/null; then
-    echo -e "${RED}[ERROR] Docker Desktop is not installed or not running.${NC}"
-    echo "       Please install Docker Desktop for Mac (Apple Silicon): https://www.docker.com/products/docker-desktop/"
+if ! command -v podman &> /dev/null; then
+    echo -e "${RED}[ERROR] Podman is not installed.${NC}"
+    echo "       Please install Podman for macOS: 'brew install podman podman-compose'"
     exit 1
 else
-    echo -e "${GREEN}✔ Docker engine ready: $(docker --version)${NC}"
+    echo -e "${GREEN}✔ Podman engine ready: $(podman --version)${NC}"
 fi
 
-if ! docker info &> /dev/null; then
-    echo -e "${RED}[ERROR] Docker daemon is not running. Please start Docker Desktop.${NC}"
-    exit 1
+# Ensure Podman machine is running
+if ! podman machine info &> /dev/null; then
+    echo -e "${YELLOW}==> Initializing Rootless Podman Machine (4 CPU, 6GB RAM)...${NC}"
+    podman machine init --cpus 4 --memory 6144 --disk-size 40 --now
+else
+    if [ "$(podman machine info --format '{{.Host.MachineState}}' 2>/dev/null)" != "Running" ]; then
+        echo -e "${YELLOW}==> Starting Podman Machine...${NC}"
+        podman machine start
+    fi
 fi
-echo -e "${GREEN}✔ Docker daemon is healthy.${NC}\n"
+echo -e "${GREEN}✔ Rootless Podman machine is healthy.${NC}\n"
 
 # 3. Workspace Dependency Synchronization
 echo -e "${BOLD}[3/7] Synchronizing Python & Node Dependencies...${NC}"
@@ -82,15 +88,15 @@ else
 fi
 echo -e "${GREEN}✔ All language dependencies synchronized.${NC}\n"
 
-# 4. Boot Local Infrastructure Containers (Docker Compose)
+# 4. Boot Local Infrastructure Containers (Podman Compose)
 echo -e "${BOLD}[4/7] Booting Local Containers (Ollama, PostgreSQL+pgvector, Redis, Temporal)...${NC}"
-docker compose --profile core up -d
+podman compose -f podman-compose.local.yml up -d
 
 echo "       Waiting for PostgreSQL pgvector to become ready on port 5432..."
-until docker exec -i agentic-postgres pg_isready -U agentic_admin -d agentic_agentic_db &> /dev/null; do
+until podman exec -i agentic-postgres pg_isready -U agentic_admin -d agentic_agentic_db &> /dev/null; do
     sleep 1
 done
-echo -e "${GREEN}✔ PostgreSQL container healthy with pgvector enabled.${NC}\n"
+echo -e "${GREEN}✔ PostgreSQL container healthy with pgvector enabled (Rootless Podman).${NC}\n"
 
 # 5. Model Acquisition & Metal GPU Verification
 echo -e "${BOLD}[5/7] Verifying Local Ollama Models in Metal Memory...${NC}"
@@ -100,16 +106,16 @@ if command -v ollama &> /dev/null; then
     ollama pull qwen2.5-coder:7b
     echo -e "${GREEN}✔ Models loaded: llama3.2:3b, qwen2.5-coder:7b.${NC}"
 else
-    echo "       Ollama running inside container. Pulling via docker exec..."
-    docker exec -i agentic-ollama ollama pull llama3.2:3b
-    docker exec -i agentic-ollama ollama pull qwen2.5-coder:7b
+    echo "       Ollama running inside container. Pulling via podman exec..."
+    podman exec -i agentic-ollama ollama pull llama3.2:3b
+    podman exec -i agentic-ollama ollama pull qwen2.5-coder:7b
     echo -e "${GREEN}✔ Container models ready.${NC}"
 fi
 echo ""
 
 # 6. Database Seeding & Extension Verification
 echo -e "${BOLD}[6/7] Testing pgvector Cosine Distance Query in PostgreSQL...${NC}"
-COSINE_TEST=$(docker exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -t -A -c "SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector;")
+COSINE_TEST=$(podman exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -t -A -c "SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector;")
 echo "       Cosine distance calculation output: $COSINE_TEST"
 echo -e "${GREEN}✔ pgvector extension verified.${NC}\n"
 
@@ -125,5 +131,5 @@ echo -e "${NC}"
 echo -e "Next steps to run the interactive full-stack experience:"
 echo -e "  ${YELLOW}pnpm dev${NC}       -> Open Web Portal on http://localhost:3000"
 echo -e "  ${YELLOW}make test-all${NC}  -> Run full unit and integration test matrices"
-echo -e "  ${YELLOW}docker compose ps${NC} -> Check container statuses"
+echo -e "  ${YELLOW}podman ps${NC}      -> Check container statuses"
 echo ""

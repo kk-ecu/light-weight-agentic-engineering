@@ -18,15 +18,15 @@ setup-m2:
 	ollama pull qwen2.5-coder:7b
 
 start-m2:
-	docker compose --profile core up -d
-	@echo "==> Enterprise local services running on Mac M2:"
+	podman compose -f podman-compose.local.yml up -d
+	@echo "==> Enterprise local services running on Mac M2 (Rootless Podman):"
 	@echo "    - Ollama (Metal GPU): http://localhost:11434"
 	@echo "    - PostgreSQL (pgvector): localhost:5432"
 	@echo "    - Temporal Engine: localhost:7233"
 	@echo "    - Web Platform: http://localhost:3000"
 
 stop:
-	docker compose down
+	podman compose -f podman-compose.local.yml down
 
 test-all:
 	uv run pytest tests/ -v --cov=planes

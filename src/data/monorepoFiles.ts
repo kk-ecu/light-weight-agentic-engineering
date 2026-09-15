@@ -30,32 +30,31 @@ Enterprise Multi-Agent Engineering Platform across 6 Decoupled Planes.
 Refer to /README.md on disk for the complete master documentation, C4 models, and local setup guide.`
   },
   {
-    path: 'docker-compose.local.yml',
-    name: 'docker-compose.local.yml',
+    path: 'podman-compose.local.yml',
+    name: 'podman-compose.local.yml',
     category: 'Root Config',
     language: 'yaml',
-    description: 'Complete lightweight local compose stack for Mac M2 (Apple Silicon): Ollama, PostgreSQL with pgvector, Redis, Temporal Server & Web UI, Keycloak, and OpenSearch with profiles.',
+    description: 'Complete lightweight local rootless Podman compose stack for Mac M2 (Apple Silicon): Ollama, PostgreSQL with pgvector, Redis, Temporal Server & Web UI.',
     content: `version: "3.9"
 
 services:
-  # Local Ollama - Apple Silicon M2 Metal acceleration enabled
+  # Local Ollama - Apple Silicon M2 Metal acceleration enabled (Native or Rootless Podman)
   ollama:
-    image: ollama/ollama:latest
+    image: docker.io/ollama/ollama:latest
     container_name: agentic-ollama
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      - ollama_data:/root/.ollama:Z
     environment:
       - OLLAMA_NUM_PARALLEL=4
       - OLLAMA_KEEP_ALIVE=24h
       - OLLAMA_FLASH_ATTENTION=1
-    profiles: ["core", "full"]
     restart: unless-stopped
 
   # PostgreSQL with pgvector for Knowledge Embeddings & LangGraph Checkpointing
   postgres:
-    image: pgvector/pgvector:pg16
+    image: docker.io/pgvector/pgvector:pg16
     container_name: agentic-postgres
     environment:
       POSTGRES_USER: agentic_admin
@@ -64,29 +63,27 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infra/local/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data:Z
+      - ./infra/local/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U agentic_admin -d agentic_agentic_db"]
       interval: 5s
       timeout: 5s
       retries: 5
-    profiles: ["core", "full"]
 
   # Redis for Session Cache, Rate Limiting & Message Bus
   redis:
-    image: redis:7-alpine
+    image: docker.io/redis:7-alpine
     container_name: agentic-redis
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "agentic_redis_pass"]
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-    profiles: ["core", "full"]
+      - redis_data:/data:Z
 
-  # Temporal Core Service (Workflows, Approvals, Activities)
+  # Temporal Core Orchestrator Service
   temporal:
-    image: temporalio/auto-setup:1.24.2
+    image: docker.io/temporalio/auto-setup:1.24.2
     container_name: agentic-temporal
     ports:
       - "7233:7233"
@@ -99,39 +96,18 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    profiles: ["core", "full"]
 
   # Temporal Web UI Dashboard
   temporal-ui:
-    image: temporalio/ui:2.26.1
+    image: docker.io/temporalio/ui:2.26.1
     container_name: agentic-temporal-ui
     ports:
-      - "8088:8080"
+      - "8233:8080"
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
     depends_on:
       - temporal
-    profiles: ["full"]
-
-  # Keycloak IAM for OpenID Connect & Enterprise RBAC
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0
-    container_name: agentic-keycloak
-    command: ["start-dev"]
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://postgres:5432/agentic_agentic_db
-      - KC_DB_USERNAME=agentic_admin
-      - KC_DB_PASSWORD=agentic_local_secret
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    profiles: ["full"]
 
 volumes:
   ollama_data:
@@ -211,15 +187,15 @@ setup-m2:
 	ollama pull qwen2.5-coder:7b
 
 start-m2:
-	docker compose --profile core up -d
-	@echo "==> Enterprise local services running on Mac M2:"
+	podman compose -f podman-compose.local.yml up -d
+	@echo "==> Enterprise local services running on Mac M2 (Rootless Podman):"
 	@echo "    - Ollama (Metal GPU): http://localhost:11434"
 	@echo "    - PostgreSQL (pgvector): localhost:5432"
 	@echo "    - Temporal Engine: localhost:7233"
 	@echo "    - Web Platform: http://localhost:3000"
 
 stop:
-	docker compose down
+	podman compose -f podman-compose.local.yml down
 
 test-all:
 	uv run pytest tests/ -v --cov=planes
@@ -700,6 +676,78 @@ class AgentTaskEnvelope(BaseModel):
 # Refer to /docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md for the full, unabridged text, terminal commands, and API payloads.`
   },
   {
+    path: 'docs/training/README.md',
+    name: 'training/README.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Master curriculum index and 1-minute presenter quick-start for delivering the 120-minute masterclass.',
+    content: `# Enterprise Multi-Agent Systems Masterclass: 1,000+ Engineers Curriculum
+# Refer to /docs/training/README.md on disk for the full index and quick-start guide.`
+  },
+  {
+    path: 'docs/training/MODULE_01_FOUNDATIONS_6_PLANE_ARCHITECTURE.md',
+    name: 'training/MODULE_01_FOUNDATIONS.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 1 (00:00 - 00:15): Foundations: Why Traditional AI Fails & The 6-Plane Decoupled Architecture.',
+    content: `# Module 1: Enterprise Foundations & The 6-Plane Decoupled Architecture
+# Refer to /docs/training/MODULE_01_FOUNDATIONS_6_PLANE_ARCHITECTURE.md for presenter notes and script.`
+  },
+  {
+    path: 'docs/training/MODULE_02_HARDWARE_APPLE_SILICON_M2_AND_PODMAN.md',
+    name: 'training/MODULE_02_HARDWARE_PODMAN.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 2 (00:15 - 00:35): Hardware: Apple Silicon M2 Metal Acceleration & Rootless Podman Containers.',
+    content: `# Module 2: Hardware: Apple Silicon M2 Metal & Rootless Podman
+# Refer to /docs/training/MODULE_02_HARDWARE_APPLE_SILICON_M2_AND_PODMAN.md for memory audit and terminal commands.`
+  },
+  {
+    path: 'docs/training/MODULE_03_AGENT_CONTROL_PLANE_LANGGRAPH.md',
+    name: 'training/MODULE_03_LANGGRAPH.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 3 (00:35 - 00:55): Agent Control Plane: LangGraph 0.2 Cyclical Graphs & Checkpointing.',
+    content: `# Module 3: Agent Control Plane: LangGraph 0.2 & State Checkpointing
+# Refer to /docs/training/MODULE_03_AGENT_CONTROL_PLANE_LANGGRAPH.md for state graph walkthrough and code.`
+  },
+  {
+    path: 'docs/training/MODULE_04_TOOL_INTEGRATION_MCP_ZERO_TRUST.md',
+    name: 'training/MODULE_04_MCP_ZERO_TRUST.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 4 (00:55 - 01:15): Tool Plane & Security: Model Context Protocol (MCP) & Zero-Trust Brokerage.',
+    content: `# Module 4: Tool Plane & Security: Model Context Protocol (MCP) & Zero-Trust
+# Refer to /docs/training/MODULE_04_TOOL_INTEGRATION_MCP_ZERO_TRUST.md for JSON-RPC payloads and secret broker demo.`
+  },
+  {
+    path: 'docs/training/MODULE_05_KNOWLEDGE_PGVECTOR_TEMPORAL_HITL.md',
+    name: 'training/MODULE_05_PGVECTOR_TEMPORAL.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 5 (01:15 - 01:35): Knowledge & Workflow: pgvector Hybrid RAG & Temporal.io HITL Gates.',
+    content: `# Module 5: Knowledge & Workflows: pgvector RAG & Temporal HITL Gates
+# Refer to /docs/training/MODULE_05_KNOWLEDGE_PGVECTOR_TEMPORAL_HITL.md for SQL queries and Temporal UI inspection.`
+  },
+  {
+    path: 'docs/training/MODULE_06_LIVE_END_TO_END_DEMO_RUNBOOK.md',
+    name: 'training/MODULE_06_LIVE_E2E_DEMO.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 6 (01:35 - 01:55): Live End-to-End Demo: Jira Ticket to Draft PR on GitHub.',
+    content: `# Module 6: Live End-to-End Demo: Jira Ticket to GitHub Draft PR
+# Refer to /docs/training/MODULE_06_LIVE_END_TO_END_DEMO_RUNBOOK.md for command-by-command demo sequence.`
+  },
+  {
+    path: 'docs/training/MODULE_07_GOVERNANCE_SIZING_AND_AUDIENCE_QA.md',
+    name: 'training/MODULE_07_GOVERNANCE_QA.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Module 7 (01:55 - 02:00): Governance, Production Sizing & Audience Q&A Handbook.',
+    content: `# Module 7: Governance, Production Sizing & Audience Q&A Handbook
+# Refer to /docs/training/MODULE_07_GOVERNANCE_SIZING_AND_AUDIENCE_QA.md for OWASP matrix and Q&A answers.`
+  },
+  {
     path: 'docs/MAC_M2_LOCAL_SETUP_GUIDE.md',
     name: 'MAC_M2_LOCAL_SETUP_GUIDE.md',
     category: 'Infrastructure',
@@ -760,8 +808,8 @@ uv sync
 pnpm install
 
 # 4. Boot Local Apple Silicon Metal Stack
-echo "==> Starting local infrastructure (Ollama, Postgres+pgvector, Redis, Temporal)..."
-docker compose --profile core up -d
+echo "==> Starting local infrastructure (Ollama, Postgres+pgvector, Redis, Temporal) via Rootless Podman..."
+podman compose -f podman-compose.local.yml up -d
 
 # 5. Pull High-Efficiency Local LLMs
 echo "==> Pulling optimized local models into Ollama..."

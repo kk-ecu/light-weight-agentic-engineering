@@ -23,8 +23,8 @@ uv sync
 pnpm install
 
 # 4. Boot Local Apple Silicon Metal Stack
-echo "==> Starting local infrastructure (Ollama, Postgres+pgvector, Redis, Temporal)..."
-docker compose --profile core up -d
+echo "==> Starting local infrastructure (Ollama, Postgres+pgvector, Redis, Temporal) via Rootless Podman..."
+podman compose -f podman-compose.local.yml up -d
 
 # 5. Pull High-Efficiency Local LLMs
 echo "==> Pulling optimized local models into Ollama..."

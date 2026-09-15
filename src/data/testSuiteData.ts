@@ -82,7 +82,7 @@ export const TEST_SUITE_SEED: TestCaseResult[] = [
     durationMs: 110,
     assertions: 11,
     coveragePercent: 97.4,
-    logOutput: '✓ Local Ollama host.docker.internal:11434 verified reachable\n✓ Model llama3.2:3b selected for advisory inquiry\n✓ Model qwen2.5-coder:7b selected for code generation\n✓ Prompt redaction successfully removed AWS keys and passwords'
+    logOutput: '✓ Local Ollama host.containers.internal:11434 verified reachable\n✓ Model llama3.2:3b selected for advisory inquiry\n✓ Model qwen2.5-coder:7b selected for code generation\n✓ Prompt redaction successfully removed AWS keys and passwords'
   },
   {
     id: 'test-agent-03',
@@ -188,12 +188,12 @@ export const TEST_SUITE_SEED: TestCaseResult[] = [
     plane: 'Infra Local M2',
     testFile: 'infra/scripts/smoke-test.sh',
     testType: 'Integration',
-    testName: 'test_apple_silicon_m2_metal_acceleration_and_docker_health',
-    targetFile: 'docker-compose.local.yml',
+    testName: 'test_apple_silicon_m2_metal_acceleration_and_podman_health',
+    targetFile: 'podman-compose.local.yml',
     status: 'passed',
     durationMs: 310,
     assertions: 12,
     coveragePercent: 96.0,
-    logOutput: '✓ Apple Silicon M2 Metal acceleration active (OLLAMA_NUM_PARALLEL=4)\n✓ Postgres+pgvector healthy on port 5432\n✓ Redis ping received PONG on port 6379\n✓ Temporal server healthy on port 7233\n✓ Total local memory footprint: 5.8 GB / 16.0 GB'
+    logOutput: '✓ Apple Silicon M2 Metal acceleration active (OLLAMA_NUM_PARALLEL=4)\n✓ Postgres+pgvector healthy on port 5432 (Rootless Podman)\n✓ Redis ping received PONG on port 6379\n✓ Temporal server healthy on port 7233\n✓ Total local memory footprint: 5.8 GB / 16.0 GB'
   }
 ];

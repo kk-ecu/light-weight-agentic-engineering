@@ -247,10 +247,10 @@ export const C4_DIAGRAMS: Record<string, C4DiagramData> = {
         description: 'Runs Ollama native Metal daemon offloading 100% of weights to GPU cores with zero RAM duplication.'
       },
       {
-        id: 'dep-m2-docker',
-        name: 'Docker Desktop / Podman on M2',
+        id: 'dep-m2-podman',
+        name: 'Rootless Podman Machine on M2',
         type: 'Container',
-        technology: 'Docker Compose (Profile: Core / Full)',
+        technology: 'Podman Compose (Profile: Core / Full)',
         description: 'Runs postgres-pgvector, redis, temporal, and lightweight FastAPI services consuming <6.5GB RAM.'
       },
       {
@@ -269,7 +269,7 @@ export const C4_DIAGRAMS: Record<string, C4DiagramData> = {
       }
     ],
     relationships: [
-      { sourceId: 'dep-m2-docker', targetId: 'dep-m2-metal', description: 'Connects to Ollama on host.docker.internal:11434', protocol: 'Local Loopback' },
+      { sourceId: 'dep-m2-podman', targetId: 'dep-m2-metal', description: 'Connects to Ollama on host.containers.internal:11434', protocol: 'Local Loopback' },
       { sourceId: 'dep-k8s-cloud', targetId: 'dep-k8s-aurora', description: 'Database connections with IAM auth', protocol: 'VPC Peering / TLS' }
     ]
   }

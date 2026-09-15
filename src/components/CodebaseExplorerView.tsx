@@ -84,7 +84,7 @@ export const CodebaseExplorerView: React.FC = () => {
 
           <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl">
             <span className="text-amber-400 font-bold block mb-1">Step 2: Boot M2 Metal Stack</span>
-            <code className="text-slate-300 block">docker compose -f docker-compose.local.yml up -d</code>
+            <code className="text-slate-300 block">podman compose -f podman-compose.local.yml up -d</code>
             <span className="text-[10px] text-emerald-400 block mt-1">Ollama, Postgres+pgvector, Redis, Temporal</span>
           </div>
 

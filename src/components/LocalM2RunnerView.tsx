@@ -43,8 +43,8 @@ export const LocalM2RunnerView: React.FC = () => {
       status: 'Ready'
     },
     {
-      title: '2. Boot Docker Compose Core Profile',
-      command: 'docker compose --profile core up -d',
+      title: '2. Boot Podman Compose Core Profile',
+      command: 'podman compose -f podman-compose.local.yml up -d',
       description: 'Spins up Ollama, PostgreSQL with pgvector, Redis, and Temporal. Consumes <5.8GB RAM on M2.',
       status: 'Ready'
     },
@@ -96,9 +96,9 @@ Progress: resolved 42, reused 42, added 42, done`,
     },
     {
       stepNumber: 3,
-      title: 'Local Infrastructure Startup (Docker Compose)',
-      subtitle: 'Spin up Ollama, PostgreSQL 16 + pgvector, Redis, and Temporal with health checks.',
-      command: 'docker compose --profile core up -d\ndocker compose ps',
+      title: 'Local Infrastructure Startup (Podman Compose)',
+      subtitle: 'Spin up Ollama, PostgreSQL 16 + pgvector, Redis, and Temporal inside rootless Podman.',
+      command: 'podman compose -f podman-compose.local.yml up -d\npodman ps',
       expectedOutput: `[+] Running 4/4
  ✔ Container agentic-postgres    Started
  ✔ Container agentic-redis       Started
@@ -110,7 +110,7 @@ agentic-postgres  pgvector/pgvector:pg16  Up 12 seconds (healthy)   0.0.0.0:5432
 agentic-redis     redis:7-alpine          Up 12 seconds (healthy)   0.0.0.0:6379->6379/tcp
 agentic-temporal  temporalio/server:1.24  Up 12 seconds (healthy)   0.0.0.0:7233->7233/tcp
 agentic-ollama    ollama/ollama:latest    Up 12 seconds (healthy)   0.0.0.0:11434->11434/tcp`,
-      notes: 'Total RAM consumed across all 4 containers is under 1.5 GB on Docker Desktop with VirtioFS enabled.'
+      notes: 'Total RAM consumed across all 4 containers is under 1.5 GB inside rootless Podman machine.'
     },
     {
       stepNumber: 4,
@@ -134,7 +134,7 @@ success`,
       stepNumber: 5,
       title: 'Database Seeding & pgvector Verification',
       subtitle: 'Assert the vector extension is loaded in PostgreSQL and test cosine distance calculations.',
-      command: `docker exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -c "SELECT extname, extversion FROM pg_extension WHERE extname = 'vector'; SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector AS cosine_distance;"`,
+      command: `podman exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -c "SELECT extname, extversion FROM pg_extension WHERE extname = 'vector'; SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector AS cosine_distance;"`,
       expectedOutput: ` extname | extversion 
 ---------+------------
  vector  | 0.3.2

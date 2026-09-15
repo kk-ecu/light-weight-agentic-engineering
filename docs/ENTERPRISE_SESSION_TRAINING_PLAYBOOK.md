@@ -138,7 +138,7 @@ flowchart TD
             Throughput["Sustained: 48.2 tok/s | First Token: 18ms"]
         end
 
-        subgraph DockerRAM["Docker Desktop (VirtioFS Enabled) (~1.53 GB)"]
+        subgraph PodmanRAM["Rootless Podman Machine (~1.53 GB)"]
             P1["PostgreSQL 16 + pgvector - 512 MB (:5432)"]
             P2["Temporal Orchestrator - 680 MB (:7233)"]
             P3["Redis 7 Alpine - 128 MB (:6379)"]
@@ -160,10 +160,10 @@ flowchart TD
 | Component | Runtime Layer | Allocation | Port | Verification Command |
 | :--- | :--- | :--- | :--- | :--- |
 | **Ollama Metal Engine** | Native Darwin `arm64` Metal | **4.80 GB** | `11434` | `curl -s http://localhost:11434/api/tags` |
-| **PostgreSQL 16 + pgvector** | Docker (VirtioFS) | **512 MB** | `5432` | `pg_isready -h localhost -p 5432` |
-| **Temporal Orchestrator** | Docker (VirtioFS) | **680 MB** | `7233` | `docker inspect --format '{{.State.Status}}' agentic-temporal` |
-| **Redis 7 In-Memory** | Docker (VirtioFS) | **128 MB** | `6379` | `redis-cli -p 6379 ping` |
-| **Temporal Web UI** | Docker (VirtioFS) | **210 MB** | `8233` | Browser to `http://localhost:8233` |
+| **PostgreSQL 16 + pgvector** | Rootless Podman Container | **512 MB** | `5432` | `podman exec -i agentic-postgres pg_isready` |
+| **Temporal Orchestrator** | Rootless Podman Container | **680 MB** | `7233` | `podman inspect --format '{{.State.Status}}' agentic-temporal` |
+| **Redis 7 In-Memory** | Rootless Podman Container | **128 MB** | `6379` | `podman exec -i agentic-redis redis-cli ping` |
+| **Temporal Web UI** | Rootless Podman Container | **210 MB** | `8233` | Browser to `http://localhost:8233` |
 | **FastAPI Microservice Fleet** | Host Python 3.11 | **240 MB** | `8001-8006` | `curl -s http://localhost:8001/health` |
 | **Node.js Express Gateway** | Host Node 20+ | **220 MB** | `3000` | `curl -s http://localhost:3000/api/health` |
 | **macOS Headroom (IDEs, OS)**| System | **9.21 GB** | *N/A* | `vm_stat` or `top -l 1` |
@@ -292,13 +292,13 @@ sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB Unified RAM"}'
 
 ```
 ===============================================================================
-PHASE 2: LAUNCHING INFRASTRUCTURE DOCKER CONTAINERS
+PHASE 2: LAUNCHING INFRASTRUCTURE PODMAN CONTAINERS
 ===============================================================================
 ```
 
 ### Step 2.1: Boot the Local Infrastructure
 ```bash
-docker compose -f docker-compose.local.yml up -d
+podman compose -f podman-compose.local.yml up -d
 ```
 *Expected Console Output:*
 ```
@@ -312,7 +312,7 @@ docker compose -f docker-compose.local.yml up -d
 
 ### Step 2.2: Verify Container Health Checks
 ```bash
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+podman ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 *Expected Verification Table:*
 ```
@@ -577,7 +577,7 @@ Our defense-in-depth model operates across 3 layers:
 |   :11434  -> Ollama Metal Engine (llama3.2:3b & qwen2.5-coder:7b @ 48 tok/s)|
 +-----------------------------------------------------------------------------+
 | CRITICAL COMMANDS:                                                          |
-|   1. Boot Docker:      docker compose -f docker-compose.local.yml up -d     |
+|   1. Boot Podman:      podman compose -f podman-compose.local.yml up -d     |
 |   2. Check Models:     curl -s http://localhost:11434/api/tags               |
 |   3. Run Web Portal:   npm run dev                                          |
 |   4. Dispatch Task:    curl -X POST http://localhost:8001/api/v1/tasks/dispatch ... |

@@ -40,7 +40,7 @@
    - [1-Click Automated Shell Script](#1-click-automated-shell-script)
    - [Step 1: Architecture Verification](#step-1-system-architecture--hardware-verification)
    - [Step 2: Toolchain Synchronization (`uv` & `pnpm`)](#step-2-toolchain-synchronization-uv--pnpm)
-   - [Step 3: Docker Compose Startup](#step-3-local-infrastructure-startup-docker-compose)
+   - [Step 3: Rootless Podman Compose Startup](#step-3-local-infrastructure-startup-rootless-podman-compose)
    - [Step 4: Pulling 4-bit Quantized Models](#step-4-pulling-4-bit-quantized-models)
    - [Step 5: Database & pgvector Validation](#step-5-database-seeding--pgvector-validation)
    - [Step 6: Launching the Full-Stack Gateway](#step-6-launching-the-full-stack-gateway)
@@ -202,7 +202,7 @@ flowchart TD
 ## 4. Complete Physical Monorepo File Hierarchy
 
 ```
-├── docker-compose.local.yml          # Local Mac M2 stack (Ollama, PostgreSQL+pgvector, Redis, Temporal)
+├── podman-compose.local.yml          # Local Mac M2 stack (Rootless Podman: Ollama, Postgres+pgvector, Redis, Temporal)
 ├── Makefile                          # Unified developer CLI (make setup-m2, make start-m2, make test-all)
 ├── pyproject.toml                    # uv / pip workspace definition for Python >=3.11
 ├── README.md                         # Definitive project documentation
@@ -496,12 +496,12 @@ Progress: resolved 42, reused 42, added 42, done
 
 ---
 
-### Step 3: Local Infrastructure Startup (Docker Compose)
+### Step 3: Local Infrastructure Startup (Rootless Podman Compose)
 Boot Ollama, PostgreSQL with pgvector, Redis, and Temporal.
 
 ```bash
-docker compose --profile core up -d
-docker compose ps
+podman compose -f podman-compose.local.yml up -d
+podman ps
 ```
 
 **Expected Terminal Output to Compare:**
@@ -544,7 +544,7 @@ success
 Assert that the PostgreSQL `vector` extension is operational.
 
 ```bash
-docker exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -c "
+podman exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -c "
 SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
 SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector AS cosine_distance;
 "

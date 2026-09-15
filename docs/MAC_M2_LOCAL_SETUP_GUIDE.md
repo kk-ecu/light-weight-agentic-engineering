@@ -17,7 +17,7 @@ This document is the definitive, step-by-step manual for provisioning, running, 
 4. [Step-by-Step Manual Setup with Expected Output Comparison](#4-step-by-step-manual-setup-with-expected-output-comparison)
    - [Step 1: System Architecture & Hardware Verification](#step-1-system-architecture--hardware-verification)
    - [Step 2: Package Managers & Toolchain Installation](#step-2-package-managers--toolchain-installation)
-   - [Step 3: Local Infrastructure Startup (Docker Compose)](#step-3-local-infrastructure-startup-docker-compose)
+   - [Step 3: Local Infrastructure Startup (Rootless Podman Compose)](#step-3-local-infrastructure-startup-rootless-podman-compose)
    - [Step 4: Pulling 4-bit Quantized Models into Ollama Metal Memory](#step-4-pulling-4-bit-quantized-models-into-ollama-metal-memory)
    - [Step 5: Database Seeding & pgvector Extension Verification](#step-5-database-seeding--pgvector-extension-verification)
    - [Step 6: Running the Full-Stack Agent Gateway & Web Portal](#step-6-running-the-full-stack-agent-gateway--web-portal)
@@ -325,24 +325,23 @@ Progress: resolved 42, reused 42, downloaded 0, added 42, done
 
 ---
 
-### Step 3: Local Infrastructure Startup (Docker Compose)
+### Step 3: Local Infrastructure Startup (Rootless Podman Compose)
 
-Spin up the local Docker containers using the lightweight `core` profile.
+Spin up the local rootless Podman containers using `podman-compose.local.yml`.
 
 #### Command to Run:
 ```bash
-docker compose --profile core up -d
+podman compose -f podman-compose.local.yml up -d
 ```
 
 #### Verify Running Containers:
 ```bash
-docker compose ps
+podman ps
 ```
 
 #### Expected Terminal Output:
 ```text
 [+] Running 4/4
- ✔ Network light-weight-agentic-engineering_default  Created
  ✔ Container agentic-postgres                        Started
  ✔ Container agentic-redis                           Started
  ✔ Container agentic-temporal                        Started
@@ -395,7 +394,7 @@ Verify that the `vector` extension is active in PostgreSQL and test cosine dista
 
 #### Command to Run:
 ```bash
-docker exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -c "
+podman exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -c "
 SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
 SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector AS cosine_distance;
 "

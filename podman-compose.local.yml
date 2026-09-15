@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+  # Local Ollama - Apple Silicon M2 Metal acceleration enabled (Native Host or Rootless Podman)
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    container_name: agentic-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama:Z
+    environment:
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_FLASH_ATTENTION=1
+    restart: unless-stopped
+
+  # PostgreSQL with pgvector for Knowledge Embeddings & LangGraph Checkpointing
+  postgres:
+    image: docker.io/pgvector/pgvector:pg16
+    container_name: agentic-postgres
+    environment:
+      POSTGRES_USER: agentic_admin
+      POSTGRES_PASSWORD: agentic_local_secret
+      POSTGRES_DB: agentic_agentic_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:Z
+      - ./infra/local/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_admin -d agentic_agentic_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Session Cache, Rate Limiting & Message Bus (Rootless Podman)
+  redis:
+    image: docker.io/redis:7-alpine
+    container_name: agentic-redis
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "agentic_redis_pass"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data:Z
+
+  # Temporal Core Orchestrator Service (Workflows, Approvals, Activities)
+  temporal:
+    image: docker.io/temporalio/auto-setup:1.24.2
+    container_name: agentic-temporal
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=agentic_admin
+      - POSTGRES_PWD=agentic_local_secret
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Temporal Web UI Dashboard (Port 8233 / 8080)
+  temporal-ui:
+    image: docker.io/temporalio/ui:2.26.1
+    container_name: agentic-temporal-ui
+    ports:
+      - "8233:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      - temporal
+
+volumes:
+  ollama_data:
+  postgres_data:
+  redis_data:
