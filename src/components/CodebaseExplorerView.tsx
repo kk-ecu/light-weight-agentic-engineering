@@ -18,7 +18,19 @@ export const CodebaseExplorerView: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
-  const categories = ['All', 'Root Config', 'Services', 'Infrastructure', 'CI/CD'];
+  const categories = [
+    'All', 
+    'Root Config', 
+    'Experience Plane', 
+    'Workflow Plane', 
+    'Agent Control Plane', 
+    'Knowledge Plane', 
+    'Tool Integration Plane', 
+    'Governance Plane', 
+    'Shared Core', 
+    'Infrastructure', 
+    'Tests & CI/CD'
+  ];
 
   const filteredFiles = activeCategory === 'All' 
     ? MONOREPO_FILES 
@@ -38,13 +50,13 @@ export const CodebaseExplorerView: React.FC = () => {
           <div>
             <div className="flex items-center space-x-2">
               <FolderTree className="w-6 h-6 text-amber-400" />
-              <h2 className="text-xl font-bold text-white">Genting Monorepo & Mac M2 Quickstart</h2>
+              <h2 className="text-xl font-bold text-white">6-Plane Monorepo & Mac M2 Quickstart</h2>
               <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded border border-amber-500/40">
-                genting-agentic-platform/
+                light-weight-agentic-engineering/
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Production-ready project structure, Docker compose stack for Apple Silicon, FastAPI services, and LangGraph agents.
+              Production-ready 6-plane project structure, Docker compose stack for Apple Silicon, FastAPI services, Temporal workflows, and LangGraph agents.
             </p>
           </div>
           <button
@@ -164,7 +176,7 @@ export const CodebaseExplorerView: React.FC = () => {
             </div>
 
             <div className="pt-3 mt-4 border-t border-slate-800 text-[11px] text-slate-500 font-mono flex items-center justify-between">
-              <span>Path: genting-agentic-platform/{selectedFile.path}</span>
+              <span>Path: light-weight-agentic-engineering/{selectedFile.path}</span>
               <span>Lines: {selectedFile.content.split('\n').length}</span>
             </div>
           </div>

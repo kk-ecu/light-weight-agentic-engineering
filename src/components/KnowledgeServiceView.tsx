@@ -15,7 +15,7 @@ import {
 
 export const KnowledgeServiceView: React.FC = () => {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>(KNOWLEDGE_BASE_SEED);
-  const [searchQuery, setSearchQuery] = useState('how does local Ollama on Mac M2 work with Genting architecture?');
+  const [searchQuery, setSearchQuery] = useState('how does local Ollama on Mac M2 work with light-weight agentic architecture?');
   const [similarityThreshold, setSimilarityThreshold] = useState(0.75);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<{
@@ -87,7 +87,7 @@ export const KnowledgeServiceView: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Query architecture specs, ADRs, or Genting CMS content..."
+            placeholder="Query architecture specs, ADRs, or enterprise CMS content..."
             className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
           />
           <button

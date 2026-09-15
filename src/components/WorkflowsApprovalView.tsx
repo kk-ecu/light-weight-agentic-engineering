@@ -30,7 +30,7 @@ export const WorkflowsApprovalView: React.FC = () => {
           currentStep: 'Approved by Release Manager · Staging Deployment Triggered via ArgoCD',
           activities: [
             ...wf.activities.map(a => a.name === 'TemporalApprovalGate' ? { ...a, status: 'completed' as const, details: 'Human sign-off provided' } : a),
-            { name: 'ArgoCDStagingSync', status: 'completed' as const, durationMs: 450, details: 'Pod deployed: genting-web-m2-staging' }
+            { name: 'ArgoCDStagingSync', status: 'completed' as const, durationMs: 450, details: 'Pod deployed: agentic-web-m2-staging' }
           ],
           pendingApproval: undefined
         };

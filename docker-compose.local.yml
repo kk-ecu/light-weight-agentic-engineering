@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  # Local Ollama - Apple Silicon M2 Metal acceleration enabled
+  ollama:
+    image: ollama/ollama:latest
+    container_name: agentic-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_FLASH_ATTENTION=1
+    profiles: ["core", "full"]
+    restart: unless-stopped
+
+  # PostgreSQL with pgvector for Knowledge Embeddings & LangGraph Checkpointing
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agentic-postgres
+    environment:
+      POSTGRES_USER: agentic_admin
+      POSTGRES_PASSWORD: agentic_local_secret
+      POSTGRES_DB: agentic_agentic_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/local/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_admin -d agentic_agentic_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    profiles: ["core", "full"]
+
+  # Redis for Session Cache, Rate Limiting & Message Bus
+  redis:
+    image: redis:7-alpine
+    container_name: agentic-redis
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "agentic_redis_pass"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    profiles: ["core", "full"]
+
+  # Temporal Core Service (Workflows, Approvals, Activities)
+  temporal:
+    image: temporalio/auto-setup:1.24.2
+    container_name: agentic-temporal
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=agentic_admin
+      - POSTGRES_PWD=agentic_local_secret
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["core", "full"]
+
+  # Temporal Web UI Dashboard
+  temporal-ui:
+    image: temporalio/ui:2.26.1
+    container_name: agentic-temporal-ui
+    ports:
+      - "8088:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      - temporal
+    profiles: ["full"]
+
+  # Keycloak IAM for OpenID Connect & Enterprise RBAC
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: agentic-keycloak
+    command: ["start-dev"]
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/agentic_agentic_db
+      - KC_DB_USERNAME=agentic_admin
+      - KC_DB_PASSWORD=agentic_local_secret
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["full"]
+
+volumes:
+  ollama_data:
+  postgres_data:
+  redis_data:

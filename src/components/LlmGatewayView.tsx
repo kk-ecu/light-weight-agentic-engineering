@@ -17,8 +17,8 @@ import {
 
 export const LlmGatewayView: React.FC = () => {
   const [selectedRoute, setSelectedRoute] = useState<LLMRouteConfig>(LLM_ROUTES[0]); // llama3.2:3b
-  const [prompt, setPrompt] = useState('Draft an architectural tradeoff analysis between running pgvector on PostgreSQL vs standalone Qdrant for 50M hospitality vector records.');
-  const [systemPrompt, setSystemPrompt] = useState('You are the Genting Enterprise Solutions Architect. Ground analysis on enterprise operational simplicity, backup durability, and M2 developer parity.');
+  const [prompt, setPrompt] = useState('Draft an architectural tradeoff analysis between running pgvector on PostgreSQL vs standalone Qdrant for 50M enterprise vector records.');
+  const [systemPrompt, setSystemPrompt] = useState('You are the Enterprise Solutions Architect for light-weight-agentic-engineering. Ground analysis on operational simplicity, ACID durability, and M2 developer parity.');
   const [temperature, setTemperature] = useState(0.2);
   const [redactionEnabled, setRedactionEnabled] = useState(true);
 
@@ -35,11 +35,11 @@ export const LlmGatewayView: React.FC = () => {
     text: `### Architectural Tradeoff Analysis: pgvector vs Qdrant
 
 1. **Operational Simplicity & Parity (Mac M2 Local Stack)**:
-   - **pgvector**: High parity with Genting's relational schemas. Developers can run \`pgvector/pgvector:pg16\` in local Docker with zero extra cluster footprint. Single ACID backup across booking tables and vector embeddings.
+   - **pgvector**: High parity with relational schemas. Developers can run \`pgvector/pgvector:pg16\` in local Docker with zero extra cluster footprint. Single ACID backup across entity tables and vector embeddings.
    - **Qdrant**: Requires separate container daemon and backup lifecycle, introducing cognitive overhead for local M2 developers.
 
 2. **Performance at 50M Records**:
-   - For Genting's 50M record scale, HNSW indexing on pgvector requires ~16GB dedicated RAM buffer pool. If memory constrained on developer machines, HNSW with halfvec (fp16) provides 2x memory reduction with 98% recall.
+   - For 50M record scale, HNSW indexing on pgvector requires ~16GB dedicated RAM buffer pool. If memory constrained on developer machines, HNSW with halfvec (fp16) provides 2x memory reduction with 98% recall.
 
 **Recommendation for POC**: Standardize on **PostgreSQL + pgvector** for the POC and Staging, as decided in ADR-007.`,
     model: "ollama/llama3.2:3b",
@@ -78,7 +78,7 @@ def idempotent_request(redis_client: Redis, ttl_seconds: int = 60):
     return decorator
 \`\`\``;
       } else {
-        responseText = `Genting LLM Gateway generated response via ${selectedRoute.name}.\nPrompt successfully processed with ${redactionEnabled ? 'enterprise secret scrubbing' : 'standard filters'}.\nLocal inference latency: ${selectedRoute.averageLatencyMs}ms. Hardware: Apple Silicon Metal GPU.`;
+        responseText = `light-weight-agentic-engineering LLM Gateway generated response via ${selectedRoute.name}.\nPrompt successfully processed with ${redactionEnabled ? 'enterprise secret scrubbing' : 'standard filters'}.\nLocal inference latency: ${selectedRoute.averageLatencyMs}ms. Hardware: Apple Silicon Metal GPU.`;
       }
 
       setCompletionOutput({

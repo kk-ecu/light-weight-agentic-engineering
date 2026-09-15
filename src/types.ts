@@ -5,8 +5,11 @@ export type ActiveTab =
   | 'llm-gateway'
   | 'workflows-approvals'
   | 'knowledge'
-  | 'architecture'
-  | 'codebase';
+  | 'c4-architecture'
+  | 'plane-codebase'
+  | 'local-m2-runner'
+  | 'test-suite'
+  | 'enterprise-review';
 
 export interface AgentDefinition {
   id: string;
@@ -90,4 +93,52 @@ export interface LLMRouteConfig {
   costPer1kOutput: number;
   averageLatencyMs: number;
   taskSuitability: string[];
+}
+
+export interface C4Element {
+  id: string;
+  name: string;
+  type: 'Person' | 'System' | 'Container' | 'Component' | 'Database' | 'Queue';
+  plane?: string;
+  technology?: string;
+  description: string;
+}
+
+export interface C4Relationship {
+  sourceId: string;
+  targetId: string;
+  description: string;
+  protocol: string;
+}
+
+export interface C4DiagramData {
+  level: 'Level 1: System Context' | 'Level 2: Container (6 Planes)' | 'Level 3: Component (Agent & MCP)' | 'Level 4: Code & Deployment (M2 Metal vs Cloud K8s)';
+  title: string;
+  description: string;
+  elements: C4Element[];
+  relationships: C4Relationship[];
+}
+
+export interface TestCaseResult {
+  id: string;
+  plane: 'Experience' | 'Workflow' | 'Agent Control' | 'Knowledge' | 'Tool Integration' | 'Operations & Governance' | 'Shared Core' | 'Infra Local M2';
+  testFile: string;
+  testType: 'Unit' | 'Integration' | 'E2E' | 'Contract' | 'Security';
+  testName: string;
+  targetFile: string;
+  status: 'passed' | 'failed' | 'running' | 'skipped';
+  durationMs: number;
+  assertions: number;
+  coveragePercent: number;
+  logOutput: string;
+}
+
+export interface EnterpriseScorecardItem {
+  id: string;
+  criterion: string;
+  score: number;
+  weight: number;
+  verdict: 'Exemplary' | 'Enterprise Ready' | 'Needs Hardening';
+  assessment: string;
+  keyStrengths: string[];
 }

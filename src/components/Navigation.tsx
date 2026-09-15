@@ -25,14 +25,17 @@ export const Navigation: React.FC<NavigationProps> = ({
   pendingApprovalsCount
 }) => {
   const navItems: { id: ActiveTab; label: string; icon: React.ElementType; badge?: number }[] = [
-    { id: 'website', label: 'Genting Website POC', icon: Globe },
+    { id: 'website', label: 'Solution Discovery Web', icon: Globe },
     { id: 'agent-gateway', label: 'Agent Gateway (LangGraph)', icon: Workflow },
     { id: 'mcp-gateway', label: 'MCP Gateway (Tools)', icon: Network },
     { id: 'llm-gateway', label: 'LLM Gateway (Ollama)', icon: Cpu },
     { id: 'workflows-approvals', label: 'Temporal & Approvals', icon: CheckCircle2, badge: pendingApprovalsCount },
     { id: 'knowledge', label: 'Knowledge (pgvector)', icon: Database },
-    { id: 'architecture', label: 'Architecture & Flows', icon: Layers },
-    { id: 'codebase', label: 'Monorepo & Mac M2 Setup', icon: FolderTree },
+    { id: 'c4-architecture', label: 'C4 & System Design', icon: Layers },
+    { id: 'plane-codebase', label: '6-Plane Monorepo', icon: FolderTree },
+    { id: 'local-m2-runner', label: 'Local M2 Runner', icon: Terminal },
+    { id: 'test-suite', label: 'Test Suite & Coverage', icon: ShieldCheck },
+    { id: 'enterprise-review', label: 'Review & 10/10 Scorecard', icon: CheckCircle2 },
   ];
 
   return (
@@ -41,17 +44,17 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo & Platform Title */}
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('website')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-amber-500/20">
-              G
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-amber-500/20">
+              ⚡
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-lg text-white tracking-tight">Genting</span>
+                <span className="font-bold text-lg text-white tracking-tight">light-weight-agentic-engineering</span>
                 <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded-full border border-amber-500/30">
-                  AGENTIC PLATFORM
+                  ENTERPRISE CORE
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Enterprise AI Engineering · Local Ollama M2 POC</p>
+              <p className="text-xs text-slate-400">Light-Weight Agentic Engineering · Full-Stack 6-Plane Architecture</p>
             </div>
           </div>
 

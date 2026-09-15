@@ -19,10 +19,10 @@ import {
 export const McpGatewayView: React.FC = () => {
   const [selectedTool, setSelectedTool] = useState<MCPTool>(MCP_TOOLS_CATALOG[1]); // git_create_draft_pr
   const [toolParams, setToolParams] = useState<string>(JSON.stringify({
-    repo: "genting/payment-core",
-    branch: "feat/gent-4412-idempotency",
+    repo: "light-weight-agentic/payment-core",
+    branch: "feat/lw-4412-idempotency",
     title: "feat(payment): Redis idempotency lock decorator",
-    body: "Closes JIRA GENT-4412. Adds atomic Redis SETNX lock with 30s TTL."
+    body: "Closes JIRA LW-4412. Adds atomic Redis SETNX lock with 30s TTL."
   }, null, 2));
 
   const [executing, setExecuting] = useState(false);
@@ -35,20 +35,20 @@ export const McpGatewayView: React.FC = () => {
     // Provide pre-populated sample params
     if (tool.id === 'tool-git-draft-pr') {
       setToolParams(JSON.stringify({
-        repo: "genting/payment-core",
-        branch: "feat/gent-4412-idempotency",
+        repo: "light-weight-agentic/payment-core",
+        branch: "feat/lw-4412-idempotency",
         title: "feat(payment): Redis idempotency lock decorator",
-        body: "Closes JIRA GENT-4412. Adds atomic Redis SETNX lock with 30s TTL."
+        body: "Closes JIRA LW-4412. Adds atomic Redis SETNX lock with 30s TTL."
       }, null, 2));
     } else if (tool.id === 'tool-deploy-prod') {
       setToolParams(JSON.stringify({
-        service: "genting-web-frontend",
-        imageTag: "ghcr.io/genting/web:v1.4.0-m2",
-        releaseNote: "Genting Website 1.4.0 release to production cluster"
+        service: "agentic-web-frontend",
+        imageTag: "ghcr.io/light-weight-agentic/web:v1.4.0-m2",
+        releaseNote: "Agentic Web 1.4.0 release to production cluster"
       }, null, 2));
     } else if (tool.id === 'tool-jira-read') {
       setToolParams(JSON.stringify({
-        issueKey: "GENT-4412"
+        issueKey: "LW-4412"
       }, null, 2));
     } else {
       setToolParams(JSON.stringify({
@@ -86,8 +86,8 @@ export const McpGatewayView: React.FC = () => {
           durationMs: 142,
           output: selectedTool.id === 'tool-git-draft-pr' ? {
             pr_number: 128,
-            pr_url: "https://github.com/genting/payment-core/pull/128",
-            branch: "feat/gent-4412-idempotency",
+            pr_url: "https://github.com/light-weight-agentic/payment-core/pull/128",
+            branch: "feat/lw-4412-idempotency",
             diffStats: "+84 lines, -2 lines, 6 tests added"
           } : {
             data: "MCP Tool executed successfully within least-privilege sandbox adapter."

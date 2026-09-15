@@ -1,6 +1,6 @@
 {
-  "name": "Genting Agentic Engineering Platform",
-  "description": "Enterprise agentic engineering POC running with local Ollama on Mac M2, featuring Agent Gateway, MCP Gateway, LLM Gateway, Temporal workflows, and knowledge retrieval.",
+  "name": "light-weight-agentic-engineering",
+  "description": "Enterprise light-weight agentic engineering platform featuring a 6-plane architecture, local Ollama on Apple Silicon M2, LangGraph cyclic state machines, Temporal durable workflows, and zero-trust tool brokerage.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

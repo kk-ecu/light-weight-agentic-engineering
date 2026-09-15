@@ -28,7 +28,7 @@ export const AgentGatewayView: React.FC = () => {
   ]);
 
   const [stateSnapshot, setStateSnapshot] = useState<any>({
-    session_id: "sess-genting-98214",
+    session_id: "sess-lw-98214",
     user_id: "usr-eng-kmishra",
     user_role: "Senior Staff Engineer",
     task_type: "CodeScaffold",
@@ -83,13 +83,13 @@ export const AgentGatewayView: React.FC = () => {
             setCurrentExecutingNode('tool_dispatch');
 
             setTimeout(() => {
-              addLog("Node 'tool_dispatch': Invoking MCP tool 'git_create_draft_pr' with branch 'feat/gent-4412'.");
-              addLog("Draft PR opened successfully: https://github.com/genting/core/pull/128");
+              addLog("Node 'tool_dispatch': Invoking MCP tool 'git_create_draft_pr' with branch 'feat/lw-4412'.");
+              addLog("Draft PR opened successfully: https://github.com/agentic/core/pull/128");
               addLog("LangGraph StateGraph reached END checkpoint.");
               setStateSnapshot((prev: any) => ({
                 ...prev,
                 status: "COMPLETED",
-                pr_url: "https://github.com/genting/core/pull/128",
+                pr_url: "https://github.com/agentic/core/pull/128",
                 outcome: "Draft PR opened with 6 Pytests passing."
               }));
               setCurrentExecutingNode(null);

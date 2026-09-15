@@ -19,15 +19,14 @@ export const ArchitectureView: React.FC = () => {
   const sequenceFlows = {
     '11.1': {
       title: '11.1 Website AI Solution Discovery Flow',
-      description: 'Customer inquiries on the Genting public site are validated by the Policy Engine, enriched with verified knowledge via MCP, synthesized by Local Ollama, and converted into CRM leads.',
+      description: 'Customer inquiries on the public site are validated by the Policy Engine, enriched with verified knowledge via MCP, synthesized by Local Ollama, and converted into CRM leads.',
       steps: [
-        { from: 'Website User', to: 'Web UI', action: 'User asks for best-fit Genting solution (e.g. Edge Hospitality Concierge)', type: 'User Interaction' },
+        { from: 'Website User', to: 'Web UI', action: 'User asks for best-fit enterprise agentic solution (e.g. Edge Concierge)', type: 'User Interaction' },
         { from: 'Web UI', to: 'App Service', action: 'Submit query request with session context', type: 'HTTP Post' },
         { from: 'App Service', to: 'Agent Gateway', action: 'Create AgentTask for Website Concierge Agent', type: 'FastAPI Dispatch' },
         { from: 'Agent Gateway', to: 'Policy Engine', action: 'Validate allowed action class for public user', type: 'Policy Pre-check' },
         { from: 'Policy Engine', to: 'Agent Gateway', action: 'Allow read-only advisory flow (least privilege)', type: 'Allow' },
         { from: 'Agent Gateway', to: 'MCP Gateway', action: 'Request solution taxonomy and case-study context', type: 'MCP Tool Call' },
-        { from: 'MCP Gateway', to: 'Search / Knowledge', action: 'Query approved knowledge (pgvector cosine search)', type: 'Vector Search' },
         { from: 'Search / Knowledge', to: 'MCP Gateway', action: 'Return relevant architecture & CMS chunks', type: 'Normalized Chunks' },
         { from: 'MCP Gateway', to: 'Agent Gateway', action: 'Return sanitized tool response without leaked secrets', type: 'MCP Response' },
         { from: 'Agent Gateway', to: 'LLM Gateway', action: 'Synthesize recommendation using Local Ollama (llama3.2:3b)', type: 'Local Inference' },
@@ -40,7 +39,7 @@ export const ArchitectureView: React.FC = () => {
       title: '11.2 Engineering PR Draft Flow',
       description: 'Engineers request automated implementation for Jira tickets. The Coding Agent queries the repo via MCP, generates code with Qwen 2.5 Coder, validates unit tests, and creates a Draft PR.',
       steps: [
-        { from: 'Developer', to: 'Engineering Portal', action: 'Request implementation draft for ticket (e.g. JIRA GENT-4412)', type: 'User Request' },
+        { from: 'Developer', to: 'Engineering Portal', action: 'Request implementation draft for ticket (e.g. JIRA LW-4412)', type: 'User Request' },
         { from: 'Engineering Portal', to: 'Workflow Service (Temporal)', action: 'Create EngineeringPRWorkflow durable execution', type: 'Temporal Start' },
         { from: 'Workflow Service', to: 'Agent Gateway', action: 'Start Coding Agent LangGraph execution', type: 'LangGraph Start' },
         { from: 'Agent Gateway', to: 'Policy Engine', action: 'Check permissions and task mode for developer role', type: 'Policy Hook' },
@@ -57,7 +56,7 @@ export const ArchitectureView: React.FC = () => {
       title: '11.3 Release Approval Flow (Human-in-the-Loop)',
       description: 'Release Manager initiates release readiness. The Release Agent aggregates build artifacts and scan reports, detects production promotion, and suspends execution for human sign-off.',
       steps: [
-        { from: 'Release Manager', to: 'Engineering Portal', action: 'Request release readiness summary for Genting Web v1.4.0', type: 'Initiate Release' },
+        { from: 'Release Manager', to: 'Engineering Portal', action: 'Request release readiness summary for Web Platform v1.4.0', type: 'Initiate Release' },
         { from: 'Engineering Portal', to: 'Workflow Service (Temporal)', action: 'Start WebsiteReleaseWorkflow state machine', type: 'Durable Workflow' },
         { from: 'Workflow Service', to: 'Agent Gateway', action: 'Assemble release evidence package via Release Agent', type: 'Agent Invocation' },
         { from: 'Agent Gateway', to: 'MCP Gateway', action: 'Fetch CI pipeline status and container image digest', type: 'CI/CD Status' },
@@ -96,7 +95,7 @@ export const ArchitectureView: React.FC = () => {
               <Layers className="w-6 h-6 text-amber-400" />
               <h2 className="text-xl font-bold text-white">Solution Architecture & Sequence Flows</h2>
               <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded border border-amber-500/40">
-                Genting Architecture Document v0.1 POC
+                light-weight-agentic-engineering Architecture Document v1.0
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -118,7 +117,7 @@ export const ArchitectureView: React.FC = () => {
               <span className="font-bold text-xs text-white">1. Experience Layer</span>
               <span className="text-[10px] text-amber-400 font-mono">Next.js + TypeScript</span>
             </div>
-            <p className="text-xs text-slate-400">Public Genting Website, Engineering Portal, Chat UI, CMS UI.</p>
+            <p className="text-xs text-slate-400">Public Discovery Website, Engineering Portal, Chat UI, CMS UI.</p>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
