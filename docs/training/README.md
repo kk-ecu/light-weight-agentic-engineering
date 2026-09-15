@@ -32,7 +32,11 @@ podman compose -f podman-compose.local.yml up -d
 # 3. Verify containers are healthy
 podman ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-# 4. Launch web portal & API Gateway
+# 4. Verify all 12 ports with automated Doctor diagnostic
+chmod +x infra/scripts/check-ports-sanity.sh
+./infra/scripts/check-ports-sanity.sh
+
+# 5. Launch web portal & API Gateway
 npm run dev
 # Open browser to http://localhost:3000
 ```

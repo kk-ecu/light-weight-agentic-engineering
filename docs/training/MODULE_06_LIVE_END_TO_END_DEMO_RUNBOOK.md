@@ -36,6 +36,10 @@ curl -s http://localhost:11434/api/tags | grep -q "qwen2.5-coder" && echo "✅ M
 
 # 4. Verify Express Full-Stack Gateway
 curl -s http://localhost:3000/api/health | grep -q "ok" && echo "✅ Web Gateway Ready"
+
+# 5. Run full 12-Port Topology Doctor across all 6 planes
+./infra/scripts/check-ports-sanity.sh
+# Expected: 12/12 ports operational (100% HEALTHY)
 ```
 
 ---

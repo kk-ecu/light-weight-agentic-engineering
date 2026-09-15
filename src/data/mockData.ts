@@ -287,6 +287,50 @@ export const KNOWLEDGE_BASE_SEED: KnowledgeDocument[] = [
     tags: ['MacM2', 'AppleSilicon', 'Ollama', 'Performance'],
     updatedAt: '2026-09-15',
     chunkCount: 6
+  },
+  {
+    id: 'kb-train-001',
+    title: 'Enterprise Masterclass Training Playbook: 1,000+ Engineer Session',
+    domain: 'training',
+    source: 'docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
+    contentSnippet: 'Comprehensive 120-minute masterclass training playbook for 1,000+ software engineers across 7 modules. Includes minute-by-minute facilitator timeline, live terminal runbook, and architectural Q&A handbook.',
+    vectorDimensions: 1536,
+    tags: ['Training', 'Playbook', 'Enterprise', 'Masterclass', 'Curriculum'],
+    updatedAt: '2026-09-15',
+    chunkCount: 32
+  },
+  {
+    id: 'kb-train-005',
+    title: 'Training Module 5: Temporal Durable Workflows & Human-in-the-Loop Sign-off',
+    domain: 'training',
+    source: 'docs/training/MODULE_05_KNOWLEDGE_PGVECTOR_TEMPORAL_HITL.md',
+    contentSnippet: 'Deep-dive into Temporal.io durable state machines, activity retry policies with exponential backoff, and zero-state-loss guarantees during worker crash or Mac M2 sleep. Details the @workflow.defn and Human-in-the-Loop approval gate.',
+    vectorDimensions: 1536,
+    tags: ['Temporal', 'DurableExecution', 'HITL', 'Workflows', 'StateMachines'],
+    updatedAt: '2026-09-15',
+    chunkCount: 18
+  },
+  {
+    id: 'kb-guide-001',
+    title: 'Mac M2 Local Setup & 12-Port Topology Sanity Guide',
+    domain: 'runbooks',
+    source: 'docs/MAC_M2_LOCAL_SETUP_GUIDE.md',
+    contentSnippet: 'Complete step-by-step Apple Silicon M2 developer guide covering 12 local ports (3000 to 9090), rootless Podman compose startup, Ollama Metal GPU model weights loading, and 1-click bootstrap scripts.',
+    vectorDimensions: 1536,
+    tags: ['MacM2', 'Setup', 'PortDoctor', 'Podman', 'Bootstrap'],
+    updatedAt: '2026-09-15',
+    chunkCount: 22
+  },
+  {
+    id: 'kb-train-curriculum',
+    title: '7-Module Enterprise Architecture Curriculum Overview',
+    domain: 'training',
+    source: 'docs/training/README.md',
+    contentSnippet: 'Complete index for the 7 enterprise modules: 1. Foundations & 6 Planes; 2. Apple Silicon M2 & Podman; 3. LangGraph Cyclic Control; 4. Zero-Trust MCP Brokerage; 5. pgvector & Temporal HITL; 6. Live E2E Demo Runbook; 7. Governance & Sizing.',
+    vectorDimensions: 1536,
+    tags: ['Training', 'Curriculum', '6Planes', 'Architecture', 'Overview'],
+    updatedAt: '2026-09-15',
+    chunkCount: 14
   }
 ];
 

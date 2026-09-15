@@ -29,6 +29,7 @@ export const CodebaseExplorerView: React.FC = () => {
     'Governance Plane', 
     'Shared Core', 
     'Infrastructure', 
+    'Training & Docs',
     'Tests & CI/CD'
   ];
 

@@ -4,10 +4,12 @@ export type ActiveTab =
   | 'mcp-gateway'
   | 'llm-gateway'
   | 'workflows-approvals'
+  | 'temporal'
   | 'knowledge'
   | 'c4-architecture'
   | 'plane-codebase'
   | 'local-m2-runner'
+  | 'port-doctor'
   | 'test-suite'
   | 'enterprise-review';
 
@@ -63,7 +65,7 @@ export interface TemporalWorkflow {
 export interface KnowledgeDocument {
   id: string;
   title: string;
-  domain: 'architecture' | 'adrs' | 'cms' | 'runbooks' | 'tickets' | 'code';
+  domain: 'architecture' | 'adrs' | 'cms' | 'runbooks' | 'tickets' | 'code' | 'training';
   contentSnippet: string;
   source: string;
   vectorDimensions: number;

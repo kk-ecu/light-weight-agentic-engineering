@@ -11,6 +11,7 @@ export interface FileCodeSnippet {
     | 'Governance Plane' 
     | 'Shared Core' 
     | 'Infrastructure' 
+    | 'Training & Docs'
     | 'Tests & CI/CD';
   language: string;
   description: string;
@@ -664,11 +665,11 @@ class AgentTaskEnvelope(BaseModel):
 `
   },
 
-  // 9. Infrastructure & Local M2
+  // 9. Masterclass Training & Documentation Playbooks
   {
     path: 'docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
     name: 'ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Self-contained 1,000+ engineer masterclass training playbook: 120-minute presenter timeline, concept breakdown across 6 planes, terminal runbook, and Q&A handbook.',
     content: `# Enterprise Multi-Agent Systems Masterclass: 1,000+ Engineer Training Playbook
@@ -678,7 +679,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/README.md',
     name: 'training/README.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Master curriculum index and 1-minute presenter quick-start for delivering the 120-minute masterclass.',
     content: `# Enterprise Multi-Agent Systems Masterclass: 1,000+ Engineers Curriculum
@@ -687,7 +688,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_01_FOUNDATIONS_6_PLANE_ARCHITECTURE.md',
     name: 'training/MODULE_01_FOUNDATIONS.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 1 (00:00 - 00:15): Foundations: Why Traditional AI Fails & The 6-Plane Decoupled Architecture.',
     content: `# Module 1: Enterprise Foundations & The 6-Plane Decoupled Architecture
@@ -696,7 +697,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_02_HARDWARE_APPLE_SILICON_M2_AND_PODMAN.md',
     name: 'training/MODULE_02_HARDWARE_PODMAN.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 2 (00:15 - 00:35): Hardware: Apple Silicon M2 Metal Acceleration & Rootless Podman Containers.',
     content: `# Module 2: Hardware: Apple Silicon M2 Metal & Rootless Podman
@@ -705,7 +706,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_03_AGENT_CONTROL_PLANE_LANGGRAPH.md',
     name: 'training/MODULE_03_LANGGRAPH.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 3 (00:35 - 00:55): Agent Control Plane: LangGraph 0.2 Cyclical Graphs & Checkpointing.',
     content: `# Module 3: Agent Control Plane: LangGraph 0.2 & State Checkpointing
@@ -714,7 +715,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_04_TOOL_INTEGRATION_MCP_ZERO_TRUST.md',
     name: 'training/MODULE_04_MCP_ZERO_TRUST.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 4 (00:55 - 01:15): Tool Plane & Security: Model Context Protocol (MCP) & Zero-Trust Brokerage.',
     content: `# Module 4: Tool Plane & Security: Model Context Protocol (MCP) & Zero-Trust
@@ -723,7 +724,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_05_KNOWLEDGE_PGVECTOR_TEMPORAL_HITL.md',
     name: 'training/MODULE_05_PGVECTOR_TEMPORAL.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 5 (01:15 - 01:35): Knowledge & Workflow: pgvector Hybrid RAG & Temporal.io HITL Gates.',
     content: `# Module 5: Knowledge & Workflows: pgvector RAG & Temporal HITL Gates
@@ -732,7 +733,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_06_LIVE_END_TO_END_DEMO_RUNBOOK.md',
     name: 'training/MODULE_06_LIVE_E2E_DEMO.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 6 (01:35 - 01:55): Live End-to-End Demo: Jira Ticket to Draft PR on GitHub.',
     content: `# Module 6: Live End-to-End Demo: Jira Ticket to GitHub Draft PR
@@ -741,7 +742,7 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/training/MODULE_07_GOVERNANCE_SIZING_AND_AUDIENCE_QA.md',
     name: 'training/MODULE_07_GOVERNANCE_QA.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Module 7 (01:55 - 02:00): Governance, Production Sizing & Audience Q&A Handbook.',
     content: `# Module 7: Governance, Production Sizing & Audience Q&A Handbook
@@ -750,12 +751,25 @@ class AgentTaskEnvelope(BaseModel):
   {
     path: 'docs/MAC_M2_LOCAL_SETUP_GUIDE.md',
     name: 'MAC_M2_LOCAL_SETUP_GUIDE.md',
-    category: 'Infrastructure',
+    category: 'Training & Docs',
     language: 'markdown',
     description: 'Comprehensive step-by-step setup guide for Apple Silicon Mac M2 with exact commands, side-by-side expected outputs, and C4 architecture diagrams.',
     content: `# Apple Silicon Mac M2 Local Setup Guide & Architecture Manual
 # Refer to /docs/MAC_M2_LOCAL_SETUP_GUIDE.md for complete details.
 Run './infra/scripts/setup-mac-m2.sh' for 1-click automated setup.`
+  },
+
+  // 10. Infrastructure & Scripts
+  {
+    path: 'infra/scripts/check-ports-sanity.sh',
+    name: 'check-ports-sanity.sh',
+    category: 'Infrastructure',
+    language: 'bash',
+    description: '12-Port topology sanity diagnostic tool and port conflict auto-remediation utility across all 6 planes.',
+    content: `#!/usr/bin/env bash
+# 12-Port Topology Sanity Diagnostic Tool
+# Usage: ./infra/scripts/check-ports-sanity.sh [--kill]
+chmod +x infra/scripts/check-ports-sanity.sh && ./infra/scripts/check-ports-sanity.sh`
   },
   {
     path: 'infra/scripts/setup-mac-m2.sh',

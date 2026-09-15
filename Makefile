@@ -1,12 +1,17 @@
-.PHONY: help setup-m2 start-m2 stop test test-all lint clean
+.PHONY: help setup-m2 start-m2 stop test test-all lint clean sanity-ports
 
 help:
 	@echo "light-weight-agentic-engineering Platform (Mac M2 Commands)"
-	@echo "  make setup-m2   - Install uv, pnpm, and pull Ollama M2 models"
-	@echo "  make start-m2   - Boot lightweight local stack (Ollama, Postgres, Redis, Temporal)"
-	@echo "  make stop       - Stop all background containers"
-	@echo "  make test-all   - Run all unit and e2e tests across all planes"
-	@echo "  make lint       - Run Ruff and ESLint checks"
+	@echo "  make setup-m2     - Install uv, pnpm, and pull Ollama M2 models"
+	@echo "  make start-m2     - Boot lightweight local stack (Ollama, Postgres, Redis, Temporal)"
+	@echo "  make sanity-ports - Audit all 12 ports & get auto-recommendations before live demo"
+	@echo "  make stop         - Stop all background containers"
+	@echo "  make test-all     - Run all unit and e2e tests across all planes"
+	@echo "  make lint         - Run Ruff and ESLint checks"
+
+sanity-ports:
+	@chmod +x ./infra/scripts/check-ports-sanity.sh
+	@./infra/scripts/check-ports-sanity.sh
 
 setup-m2:
 	@echo "==> Setting up Apple Silicon Mac M2 environment..."

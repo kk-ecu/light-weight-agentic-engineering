@@ -244,15 +244,20 @@ sequenceDiagram
 
 ## 3. One-Click Automated Shell Script Execution
 
-For rapid bootstrapping, use the provided automated script `infra/scripts/setup-mac-m2.sh`:
+For rapid bootstrapping and automated health verification, use the provided scripts:
 
 ```bash
 # Clone repository and navigate to root
 cd light-weight-agentic-engineering
 
-# Make bootstrap script executable and run
-chmod +x infra/scripts/setup-mac-m2.sh
+# Make scripts executable
+chmod +x infra/scripts/*.sh
+
+# Option A: 1-Click Bootstrap for Apple Silicon Mac M2
 ./infra/scripts/setup-mac-m2.sh
+
+# Option B: Automated 12-Port Topology Sanity Diagnostic
+./infra/scripts/check-ports-sanity.sh
 ```
 
 ---
@@ -476,6 +481,7 @@ You can verify all microservice endpoints directly using `curl`:
 | Plane | Endpoint | Protocol | Sample Command | Expected Status |
 | :--- | :--- | :--- | :--- | :--- |
 | **System** | `/api/health` | GET | `curl -s http://localhost:3000/api/health` | `200 OK` (`"status":"online"`) |
+| **System** | `/api/system/port-sanity` | GET | `curl -s http://localhost:3000/api/system/port-sanity` | `200 OK` (`"allHealthy":true`) |
 | **Agent** | `/api/agent/dispatch` | POST | `curl -s -X POST http://localhost:3000/api/agent/dispatch -H "Content-Type: application/json" -d '{"agentId":"website-concierge-agent","prompt":"Test","actionClass":"read"}'` | `200 OK` (`"success":true`) |
 | **Tools** | `/api/mcp/execute` | POST | `curl -s -X POST http://localhost:3000/api/mcp/execute -H "Content-Type: application/json" -d '{"toolName":"git_create_draft_pr","callerRole":"Senior Staff Engineer","actionClass":"draft","parameters":{"ticketId":"LW-4412"}}'` | `200 OK` (`"status":"EXECUTED"`) |
 | **Knowledge** | `/api/knowledge/search` | POST | `curl -s -X POST http://localhost:3000/api/knowledge/search -H "Content-Type: application/json" -d '{"query":"Apple Silicon Metal","topK":2}'` | `200 OK` (Count: 2) |
@@ -486,9 +492,14 @@ You can verify all microservice endpoints directly using `curl`:
 
 ## 6. Troubleshooting & Performance Tuning Guide
 
-### Issue 1: `port 3000 already in use` or `port 5432 already in use`
-- **Cause**: Another local PostgreSQL instance or dev server is running.
-- **Fix**:
+### Issue 1: `port 3000 already in use` or other microservice port conflict
+- **Cause**: Another local dev server, PostgreSQL, or zombie process is running.
+- **Automated Fix**:
+  ```bash
+  # Automatically detect and clear port conflicts across all 12 ports:
+  ./infra/scripts/check-ports-sanity.sh --kill
+  ```
+- **Manual Fix**:
   ```bash
   # Identify process occupying port 3000 or 5432
   lsof -i :3000

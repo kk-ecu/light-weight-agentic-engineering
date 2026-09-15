@@ -10,45 +10,85 @@ import {
   RefreshCw, 
   CheckCircle2, 
   Sparkles,
-  Sliders
+  Sliders,
+  BookOpen,
+  FolderTree,
+  ExternalLink,
+  Clock,
+  Cpu,
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 export const KnowledgeServiceView: React.FC = () => {
-  const [documents, setDocuments] = useState<KnowledgeDocument[]>(KNOWLEDGE_BASE_SEED);
+  const [documents] = useState<KnowledgeDocument[]>(KNOWLEDGE_BASE_SEED);
   const [searchQuery, setSearchQuery] = useState('how does local Ollama on Mac M2 work with light-weight agentic architecture?');
-  const [similarityThreshold, setSimilarityThreshold] = useState(0.75);
+  const [similarityThreshold, setSimilarityThreshold] = useState(0.70);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState<string>('all');
+  const [activeDocModal, setActiveDocModal] = useState<KnowledgeDocument | null>(null);
+
+  const calculateScore = (doc: KnowledgeDocument, query: string) => {
+    const q = query.toLowerCase().trim();
+    if (!q) return 0.70;
+    const tokens = q.split(/\s+/);
+    let matches = 0;
+    
+    tokens.forEach(tok => {
+      if (tok.length <= 2) return;
+      if (doc.title.toLowerCase().includes(tok)) matches += 3;
+      if (doc.contentSnippet.toLowerCase().includes(tok)) matches += 2;
+      if (doc.tags.some(t => t.toLowerCase().includes(tok))) matches += 3;
+      if (doc.source.toLowerCase().includes(tok)) matches += 2;
+      if (doc.domain.toLowerCase().includes(tok)) matches += 2;
+    });
+
+    const baseScore = 0.55 + Math.min(0.40, matches * 0.08);
+    return Math.min(0.98, parseFloat(baseScore.toFixed(2)));
+  };
+
   const [searchResults, setSearchResults] = useState<{
     doc: KnowledgeDocument;
     score: number;
     matchType: 'vector' | 'hybrid';
   }[]>([
-    { doc: KNOWLEDGE_BASE_SEED[0], score: 0.94, matchType: 'hybrid' },
-    { doc: KNOWLEDGE_BASE_SEED[4], score: 0.91, matchType: 'vector' },
-    { doc: KNOWLEDGE_BASE_SEED[1], score: 0.82, matchType: 'vector' }
+    { doc: KNOWLEDGE_BASE_SEED[0], score: 0.96, matchType: 'hybrid' },
+    { doc: KNOWLEDGE_BASE_SEED[4], score: 0.93, matchType: 'vector' },
+    { doc: KNOWLEDGE_BASE_SEED[7], score: 0.89, matchType: 'hybrid' },
+    { doc: KNOWLEDGE_BASE_SEED[1], score: 0.84, matchType: 'vector' }
   ]);
 
-  const handleSearch = () => {
+  const handleSearch = (customQuery?: string) => {
+    const q = customQuery !== undefined ? customQuery : searchQuery;
+    if (customQuery !== undefined) setSearchQuery(customQuery);
     setIsSearching(true);
+
     setTimeout(() => {
-      const q = searchQuery.toLowerCase();
       const scored = documents.map(doc => {
-        let score = 0.65;
-        if (q.includes("m2") && (doc.tags.includes("MacM2") || doc.contentSnippet.includes("M2"))) score += 0.28;
-        if (q.includes("ollama") && (doc.tags.includes("Ollama") || doc.contentSnippet.includes("Ollama"))) score += 0.26;
-        if (q.includes("gateway") && doc.tags.includes("Gateways")) score += 0.25;
-        if (q.includes("langgraph") && doc.tags.includes("LangGraph")) score += 0.29;
+        const score = calculateScore(doc, q);
         return {
           doc,
-          score: Math.min(0.98, score + Math.random() * 0.05),
-          matchType: 'hybrid' as const
+          score,
+          matchType: (score > 0.85 ? 'hybrid' : 'vector') as 'vector' | 'hybrid'
         };
       }).sort((a, b) => b.score - a.score);
 
       setSearchResults(scored.filter(s => s.score >= similarityThreshold));
       setIsSearching(false);
-    }, 450);
+    }, 350);
   };
+
+  const sampleQueries = [
+    'How does local Ollama on Mac M2 work?',
+    'What is Temporal Workflows durable execution & HITL?',
+    'Enterprise 1,000+ engineer masterclass training playbook',
+    'ADR-009 zero-trust MCP gateway isolation',
+    'pgvector HNSW vector index cosine similarity'
+  ];
+
+  const filteredDocs = selectedDomain === 'all' 
+    ? documents 
+    : documents.filter(d => d.domain === selectedDomain);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -56,29 +96,37 @@ export const KnowledgeServiceView: React.FC = () => {
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2">
-              <Database className="w-6 h-6 text-amber-400" />
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold">
+                <Database className="w-4 h-4" />
+              </div>
               <h2 className="text-xl font-bold text-white">Knowledge & Retrieval Service</h2>
-              <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded border border-amber-500/40">
+              <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2.5 py-0.5 rounded border border-amber-500/40">
                 PostgreSQL + pgvector (HNSW Index)
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Multi-source ingestion, semantic chunking, and hybrid search (pgvector cosine + OpenSearch BM25 ranking).
+              Multi-source ingestion, semantic chunking, and hybrid search (pgvector cosine + BM25 ranking) across architecture docs, ADRs, runbooks, and master training playbooks.
             </p>
           </div>
           <div className="flex items-center space-x-2 font-mono text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
             <span>Embeddings:</span>
             <span className="text-emerald-400 font-semibold">1536-dim (Normalized)</span>
+            <span>·</span>
+            <span>Corpus:</span>
+            <span className="text-amber-400 font-semibold">{documents.length} Docs Indexed</span>
           </div>
         </div>
       </div>
 
       {/* Interactive Semantic Search Tester */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div className="flex items-center space-x-2 mb-3">
-          <Search className="w-5 h-5 text-amber-400" />
-          <h3 className="text-sm font-bold text-white">Hybrid Retrieval Tester (pgvector + BM25)</h3>
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Search className="w-5 h-5 text-amber-400" />
+            <h3 className="text-sm font-bold text-white">Hybrid Retrieval Tester (pgvector + BM25)</h3>
+          </div>
+          <span className="text-[11px] text-slate-400 font-mono">Port: 5432 (pgvector)</span>
         </div>
 
         <div className="flex flex-col md:flex-row gap-3">
@@ -87,13 +135,13 @@ export const KnowledgeServiceView: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Query architecture specs, ADRs, or enterprise CMS content..."
+            placeholder="Query architecture specs, ADRs, training playbooks, or Temporal runbooks..."
             className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
           />
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearch()}
             disabled={isSearching || !searchQuery}
-            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center space-x-2"
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center space-x-2 shrink-0 shadow-md shadow-amber-500/10"
           >
             {isSearching ? (
               <>
@@ -109,11 +157,26 @@ export const KnowledgeServiceView: React.FC = () => {
           </button>
         </div>
 
+        {/* Suggested Queries */}
+        <div className="flex items-center space-x-2 text-xs flex-wrap gap-y-1.5 pt-1">
+          <span className="text-slate-500 text-[11px] font-medium shrink-0">Sample Queries:</span>
+          {sampleQueries.map((sq, i) => (
+            <button
+              key={i}
+              onClick={() => handleSearch(sq)}
+              className="text-[11px] bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-amber-300 px-2.5 py-1 rounded-lg border border-slate-800 transition-colors"
+            >
+              "{sq}"
+            </button>
+          ))}
+        </div>
+
         {/* Similarity Threshold Slider */}
-        <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+        <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center space-x-2">
             <span>Minimum Cosine Threshold:</span>
             <span className="font-mono text-amber-400 font-bold">{similarityThreshold}</span>
+            <span className="text-[10px] text-slate-500">(Scores above threshold are returned)</span>
           </div>
           <input
             type="range"
@@ -121,7 +184,11 @@ export const KnowledgeServiceView: React.FC = () => {
             max="0.95"
             step="0.05"
             value={similarityThreshold}
-            onChange={(e) => setSimilarityThreshold(parseFloat(e.target.value))}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setSimilarityThreshold(val);
+              handleSearch();
+            }}
             className="w-48 accent-amber-500 cursor-pointer"
           />
         </div>
@@ -133,15 +200,26 @@ export const KnowledgeServiceView: React.FC = () => {
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Ranked Retrieval Candidates ({searchResults.length} matches):
           </h3>
+          <span className="text-xs text-slate-500 font-mono">HNSW Cosine Metric</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {searchResults.map(({ doc, score, matchType }, idx) => (
-            <div key={doc.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          {searchResults.map(({ doc, score, matchType }) => (
+            <div 
+              key={doc.id} 
+              onClick={() => setActiveDocModal(doc)}
+              className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-850 cursor-pointer rounded-xl p-4 flex flex-col justify-between transition-all group"
+            >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="font-bold text-xs text-white line-clamp-1">{doc.title}</span>
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                  <span className="font-bold text-xs text-white group-hover:text-amber-300 transition-colors line-clamp-1">
+                    {doc.title}
+                  </span>
+                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 border ${
+                    score >= 0.90 
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  }`}>
                     {(score * 100).toFixed(1)}% match
                   </span>
                 </div>
@@ -151,7 +229,10 @@ export const KnowledgeServiceView: React.FC = () => {
                 </p>
 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {doc.tags.map(t => (
+                  <span className="text-[10px] bg-amber-500/10 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 uppercase font-semibold">
+                    {doc.domain}
+                  </span>
+                  {doc.tags.slice(0, 3).map(t => (
                     <span key={t} className="text-[10px] bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">
                       #{t}
                     </span>
@@ -161,12 +242,127 @@ export const KnowledgeServiceView: React.FC = () => {
 
               <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-500 flex items-center justify-between">
                 <span className="truncate max-w-[180px]">{doc.source}</span>
-                <span>{doc.chunkCount} chunks</span>
+                <span className="text-amber-400 group-hover:underline">View Document ↗</span>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Ingested Knowledge Base Corpus Explorer */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2">
+            <BookOpen className="w-5 h-5 text-amber-400" />
+            <h3 className="text-sm font-bold text-white">Ingested Corpus Knowledge Catalog</h3>
+            <span className="text-xs text-slate-400 font-mono">({filteredDocs.length} documents)</span>
+          </div>
+
+          {/* Domain Filter */}
+          <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs overflow-x-auto">
+            {['all', 'architecture', 'adrs', 'training', 'runbooks', 'cms'].map((dom) => (
+              <button
+                key={dom}
+                onClick={() => setSelectedDomain(dom)}
+                className={`px-2.5 py-1 rounded-lg capitalize whitespace-nowrap transition-colors ${
+                  selectedDomain === dom
+                    ? 'bg-amber-500 text-slate-950 font-bold'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {dom === 'all' ? 'All Domains' : dom}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="divide-y divide-slate-800/80">
+          {filteredDocs.map((doc) => (
+            <div 
+              key={doc.id}
+              onClick={() => setActiveDocModal(doc)}
+              className="py-3 px-2 rounded-lg hover:bg-slate-950/60 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
+            >
+              <div className="space-y-1 max-w-3xl">
+                <div className="flex items-center space-x-2 flex-wrap">
+                  <span className="text-xs font-bold text-white hover:text-amber-300">{doc.title}</span>
+                  <span className="text-[10px] bg-slate-950 text-amber-400 border border-slate-800 px-1.5 py-0.5 rounded font-mono uppercase">
+                    {doc.domain}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 line-clamp-1">{doc.contentSnippet}</p>
+              </div>
+
+              <div className="flex items-center space-x-4 text-[11px] font-mono text-slate-500 shrink-0">
+                <span>{doc.chunkCount} Chunks</span>
+                <span>{doc.vectorDimensions}d</span>
+                <span className="text-slate-400">{doc.updatedAt}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Document Detail Modal */}
+      {activeDocModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                  {activeDocModal.domain}
+                </span>
+                <h3 className="text-base font-bold text-white mt-1.5">{activeDocModal.title}</h3>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">{activeDocModal.source}</p>
+              </div>
+              <button
+                onClick={() => setActiveDocModal(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3">
+              <div className="font-semibold text-slate-200">Ingested Abstract / Semantic Embedding Content:</div>
+              <p>{activeDocModal.contentSnippet}</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
+              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div className="text-slate-500 text-[10px]">Vector Dimensions</div>
+                <div className="text-amber-400 font-bold text-sm mt-0.5">{activeDocModal.vectorDimensions}d</div>
+              </div>
+              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div className="text-slate-500 text-[10px]">Indexed Chunks</div>
+                <div className="text-emerald-400 font-bold text-sm mt-0.5">{activeDocModal.chunkCount}</div>
+              </div>
+              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div className="text-slate-500 text-[10px]">Last Synced</div>
+                <div className="text-sky-400 font-bold text-sm mt-0.5">{activeDocModal.updatedAt}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+              <span className="text-xs text-slate-400 mr-1">Semantic Tags:</span>
+              {activeDocModal.tags.map(t => (
+                <span key={t} className="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                  #{t}
+                </span>
+              ))}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex justify-end">
+              <button
+                onClick={() => setActiveDocModal(null)}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl"
+              >
+                Close Document
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

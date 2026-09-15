@@ -13,13 +13,87 @@ import {
   Workflow, 
   Activity,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Code,
+  RotateCcw,
+  Terminal,
+  Server
 } from 'lucide-react';
+
+const SAMPLE_TEMPORAL_CODE = `# planes/workflow-plane/workflows/pr_review_workflow.py
+from datetime import timedelta
+from temporalio import workflow
+from temporalio.common import RetryPolicy
+
+with workflow.unsafe.imports_passed_through():
+    from activities.jira_activities import fetch_ticket_metadata, update_ticket_status
+    from activities.agent_activities import invoke_agent_planner, execute_code_generation
+    from activities.sandbox_activities import run_podman_sandbox_tests
+    from activities.git_activities import push_branch, create_pull_request
+
+@workflow.defn
+class EngineeringPRWorkflow:
+    """
+    Durable state machine for autonomous Jira ticket implementation.
+    Guarantees state persistence across worker restarts and Mac M2 sleeps.
+    """
+    def __init__(self) -> None:
+        self.approval_decision: str | None = None
+        self.is_approved: bool = False
+
+    @workflow.signal
+    def human_approval_signal(self, approved: bool) -> None:
+        """Signal method invoked when human manager approves in UI."""
+        self.is_approved = approved
+        self.approval_decision = "APPROVED" if approved else "REJECTED"
+
+    @workflow.run
+    async def run(self, ticket_id: str, developer_id: str) -> dict:
+        retry_policy = RetryPolicy(
+            initial_interval=timedelta(seconds=1),
+            backoff_coefficient=2.0,
+            maximum_interval=timedelta(seconds=30),
+            maximum_attempts=5,
+        )
+
+        # 1. Fetch Jira Ticket
+        ticket = await workflow.execute_activity(
+            fetch_ticket_metadata, ticket_id,
+            start_to_close_timeout=timedelta(seconds=10),
+            retry_policy=retry_policy,
+        )
+
+        # 2. Local Ollama LLM Inference on Mac M2 Metal GPU
+        plan = await workflow.execute_activity(
+            invoke_agent_planner, ticket,
+            start_to_close_timeout=timedelta(seconds=60),
+        )
+
+        # 3. Podman Sandbox Test Execution
+        test_results = await workflow.execute_activity(
+            run_podman_sandbox_tests, plan["diff"],
+            start_to_close_timeout=timedelta(seconds=120),
+        )
+
+        # 4. Human-in-the-Loop Temporal Approval Gate
+        await workflow.wait_condition(lambda: self.approval_decision is not None)
+
+        if not self.is_approved:
+            return {"status": "REJECTED", "ticket_id": ticket_id}
+
+        # 5. Push PR to Git
+        pr = await workflow.execute_activity(
+            create_pull_request, plan["branch_name"],
+            start_to_close_timeout=timedelta(seconds=15),
+        )
+
+        return {"status": "COMPLETED", "pr_url": pr["url"]}`;
 
 export const WorkflowsApprovalView: React.FC = () => {
   const [workflows, setWorkflows] = useState<TemporalWorkflow[]>(TEMPORAL_WORKFLOWS_SEED);
   const [selectedWorkflow, setSelectedWorkflow] = useState<TemporalWorkflow>(TEMPORAL_WORKFLOWS_SEED[1]); // The one awaiting approval
   const [approvalDecisionMade, setApprovalDecisionMade] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'queue' | 'code'>('queue');
 
   const handleApprove = (wfId: string) => {
     setWorkflows(prev => prev.map(wf => {
@@ -58,20 +132,50 @@ export const WorkflowsApprovalView: React.FC = () => {
     setApprovalDecisionMade('REJECTED');
   };
 
+  const handleTriggerNewWorkflow = () => {
+    const newId = `wf_eng_auto_${Math.floor(Math.random() * 9000 + 1000)}`;
+    const newWf: TemporalWorkflow = {
+      id: newId,
+      workflowType: 'EngineeringPRWorkflow',
+      targetEntity: `PAY-449${workflows.length + 1}: Circuit Breaker Policy Automation`,
+      initiatedBy: 'agent_task_orchestrator',
+      startTime: new Date().toLocaleTimeString(),
+      status: 'RUNNING',
+      currentStep: 'Ollama Metal GPU Inference & AST Token Generation',
+      activities: [
+        { name: 'FetchJiraMetadata', status: 'completed', durationMs: 280, details: 'Validated DLP classification: Safe internal code' },
+        { name: 'OllamaCodeGenInference', status: 'running', durationMs: 1420, details: 'Executing on Apple Silicon Metal GPU (qwen2.5-coder:7b)' }
+      ]
+    };
+
+    setWorkflows([newWf, ...workflows]);
+    setSelectedWorkflow(newWf);
+    setApprovalDecisionMade(null);
+  };
+
+  const handleResetWorkflows = () => {
+    setWorkflows(TEMPORAL_WORKFLOWS_SEED);
+    setSelectedWorkflow(TEMPORAL_WORKFLOWS_SEED[1]);
+    setApprovalDecisionMade(null);
+  };
+
   const pendingCount = workflows.filter(w => w.status === 'WAITING_APPROVAL').length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">
+                <Clock className="w-4 h-4" />
+              </div>
               <h2 className="text-xl font-bold text-white">Temporal Workflows & Human Approvals</h2>
               {pendingCount > 0 && (
-                <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded border border-amber-500/40 animate-pulse">
-                  {pendingCount} Sign-off Required
+                <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full border border-amber-500/40 animate-pulse flex items-center space-x-1">
+                  <span>●</span>
+                  <span>{pendingCount} Sign-off Required</span>
                 </span>
               )}
             </div>
@@ -79,14 +183,86 @@ export const WorkflowsApprovalView: React.FC = () => {
               Durable execution runtime guaranteeing zero state loss, activity retry policies, and Human-in-the-Loop gates.
             </p>
           </div>
-          <div className="flex items-center space-x-2 font-mono text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-            <span>Temporal Server:</span>
-            <span className="text-emerald-400 font-semibold">localhost:7233 (Active)</span>
+
+          <div className="flex items-center space-x-2 flex-wrap gap-1">
+            <button
+              onClick={handleTriggerNewWorkflow}
+              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs flex items-center space-x-1.5 transition-all shadow-md shadow-emerald-500/20"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Trigger New Workflow</span>
+            </button>
+            <button
+              onClick={handleResetWorkflows}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center space-x-1.5 transition-all border border-slate-700"
+              title="Reset sample workflows"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Telemetry & Sub-Tab Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center space-x-2 text-[11px] font-mono flex-wrap gap-y-1">
+            <div className="bg-slate-950 px-2.5 py-1 rounded border border-slate-800 flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-slate-400">gRPC Server:</span>
+              <span className="text-emerald-400 font-semibold">localhost:7233</span>
+            </div>
+            <div className="bg-slate-950 px-2.5 py-1 rounded border border-slate-800 flex items-center space-x-1.5">
+              <span className="text-slate-400">Web UI:</span>
+              <span className="text-sky-400 font-semibold">localhost:8233</span>
+            </div>
+            <div className="bg-slate-950 px-2.5 py-1 rounded border border-slate-800 flex items-center space-x-1.5">
+              <span className="text-slate-400">SDK:</span>
+              <span className="text-amber-300 font-semibold">temporalio==1.7.0</span>
+            </div>
+          </div>
+
+          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+            <button
+              onClick={() => setActiveTab('queue')}
+              className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center space-x-1.5 ${
+                activeTab === 'queue'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Execution Queue ({workflows.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('code')}
+              className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center space-x-1.5 ${
+                activeTab === 'code'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Code className="w-3.5 h-3.5" />
+              <span>Python Workflow Def</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Layout: Workflow List & Detail/Approval View */}
+      {activeTab === 'code' ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="px-5 py-3 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Code className="w-4 h-4 text-amber-400" />
+              <span className="font-mono text-xs font-bold text-white">planes/workflow-plane/workflows/pr_review_workflow.py</span>
+            </div>
+            <span className="text-[11px] text-slate-400">Temporalio Python SDK with @workflow.defn</span>
+          </div>
+          <div className="p-5 font-mono text-xs text-slate-200 bg-slate-950 overflow-x-auto whitespace-pre leading-relaxed">
+            {SAMPLE_TEMPORAL_CODE}
+          </div>
+        </div>
+      ) : (
+      /* Main Layout: Workflow List & Detail/Approval View */
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Workflows Queue */}
         <div className="lg:col-span-5 space-y-3">
@@ -239,6 +415,7 @@ export const WorkflowsApprovalView: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

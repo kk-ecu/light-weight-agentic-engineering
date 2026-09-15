@@ -20,7 +20,7 @@ import { TestSuiteView } from './components/TestSuiteView';
 import { EnterpriseReviewView } from './components/EnterpriseReviewView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('website');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('local-m2-runner');
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(1);
 
   return (
@@ -47,7 +47,7 @@ export default function App() {
 
         {activeTab === 'llm-gateway' && <LlmGatewayView />}
 
-        {activeTab === 'workflows-approvals' && <WorkflowsApprovalView />}
+        {(activeTab === 'workflows-approvals' || activeTab === 'temporal') && <WorkflowsApprovalView />}
 
         {activeTab === 'knowledge' && <KnowledgeServiceView />}
 
@@ -55,7 +55,9 @@ export default function App() {
 
         {activeTab === 'plane-codebase' && <CodebaseExplorerView />}
 
-        {activeTab === 'local-m2-runner' && <LocalM2RunnerView />}
+        {activeTab === 'local-m2-runner' && <LocalM2RunnerView onNavigateTab={setActiveTab} />}
+
+        {activeTab === 'port-doctor' && <LocalM2RunnerView initialSubTab="port-doctor" onNavigateTab={setActiveTab} />}
 
         {activeTab === 'test-suite' && <TestSuiteView />}
 
@@ -74,6 +76,9 @@ export default function App() {
           </div>
 
           <div className="flex items-center space-x-4 text-slate-400">
+            <button onClick={() => setActiveTab('temporal')} className="hover:text-amber-400 transition-colors font-medium">
+              ⏱️ Temporal Engine (:7233)
+            </button>
             <button onClick={() => setActiveTab('c4-architecture')} className="hover:text-amber-400 transition-colors">
               C4 System Design
             </button>

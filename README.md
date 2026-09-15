@@ -209,10 +209,26 @@ flowchart TD
 ├── server.ts                         # Node.js/Express API Gateway & Vite dev server (Port 3000)
 │
 ├── docs/                             # Architecture & Setup Documentation
-│   └── MAC_M2_LOCAL_SETUP_GUIDE.md   # Exhaustive M2 step-by-step setup guide with expected outputs
+│   ├── MAC_M2_LOCAL_SETUP_GUIDE.md   # Exhaustive M2 step-by-step setup guide with expected outputs
+│   ├── ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md # 1,000+ Engineer 120-min masterclass training manual
+│   ├── architecture/
+│   │   └── solution-architecture.md  # 6-Plane Decoupled enterprise architecture blueprint
+│   ├── adr/
+│   │   ├── 004-m2-metal-acceleration.md # ADR 004: Apple Silicon Metal GPU local inference
+│   │   └── 009-mcp-gateway-isolation.md # ADR 009: MCP Zero-Trust ephemeral secret brokerage
+│   └── training/                     # 7-Module Enterprise Masterclass Curriculum
+│       ├── README.md                 # Curriculum index and 1-minute presenter quick-start
+│       ├── MODULE_01_FOUNDATIONS_6_PLANE_ARCHITECTURE.md
+│       ├── MODULE_02_HARDWARE_APPLE_SILICON_M2_AND_PODMAN.md
+│       ├── MODULE_03_AGENT_CONTROL_PLANE_LANGGRAPH.md
+│       ├── MODULE_04_TOOL_INTEGRATION_MCP_ZERO_TRUST.md
+│       ├── MODULE_05_KNOWLEDGE_PGVECTOR_TEMPORAL_HITL.md
+│       ├── MODULE_06_LIVE_END_TO_END_DEMO_RUNBOOK.md
+│       └── MODULE_07_GOVERNANCE_SIZING_AND_AUDIENCE_QA.md
 │
 ├── infra/                            # Infrastructure & Automation Scripts
 │   └── scripts/
+│       ├── check-ports-sanity.sh     # 12-Port topology sanity diagnostic & auto-kill utility
 │       ├── setup-mac-m2.sh           # 1-click automated bootstrap script for Apple Silicon M2
 │       ├── verify-mac-m2.sh          # Automated health & endpoint verification test script
 │       └── bootstrap-local.sh        # Container dependency bootstrapper
@@ -587,15 +603,39 @@ Open **`http://localhost:3000`** in your browser.
 
 ---
 
-### Step 7: Executing Automated Pytest E2E Suite
-Run the full integration test pipeline asserting Jira ingestion, LLM code generation, and GitHub Draft PR creation.
+### Step 7: Executing Automated Pytest E2E Suite & 12-Port Sanity Check
+Run the 12-port topology sanity diagnostic and the integration test pipeline:
 
 ```bash
+# 1. Run automated 12-port health and conflict diagnostic
+chmod +x infra/scripts/check-ports-sanity.sh
+./infra/scripts/check-ports-sanity.sh
+
+# 2. Run end-to-end Pytest suite
 uv run pytest tests/e2e/test_engineering_pr_flow.py -v
 ```
 
 **Expected Terminal Output to Compare:**
 ```text
+[Doctor] Running 12-Port Topology Sanity Diagnostic...
+========================================================================================
+Port   Plane                     Service                       Status     Latency
+----------------------------------------------------------------------------------------
+3000   Plane 1: Experience       Unified API Gateway & Web UI  ONLINE     12ms
+8001   Plane 2: Agent Control    Agent Gateway (LangGraph)     ONLINE     18ms
+8002   Plane 2: Agent Control    LLM Gateway (DLP & Metal)     ONLINE     14ms
+8003   Plane 3: Tool Integration MCP Tool Gateway              ONLINE     16ms
+8004   Plane 5: Knowledge        Knowledge Retrieval (pgvector) ONLINE    22ms
+8005   Plane 4: Workflow         Approval Service (HITL Gate)  ONLINE     15ms
+8006   Plane 6: Governance       Policy Service (Zero-Trust)   ONLINE     11ms
+11434  Plane 2: Agent Control    Ollama Engine (Metal GPU)     ONLINE     9ms
+5432   Plane 5: Knowledge        PostgreSQL 16 + pgvector      ONLINE     4ms
+7233   Plane 4: Workflow         Temporal Server (gRPC)        ONLINE     8ms
+8233   Plane 4: Workflow         Temporal Web UI Console       ONLINE     19ms
+6379   Plane 6: Governance       Redis 7 In-Memory Cache       ONLINE     2ms
+========================================================================================
+[Doctor] Result: 12/12 ports operational (100% HEALTHY). All microservice planes responding.
+
 ============================= test session starts ==============================
 platform darwin -- Python 3.11.9, pytest-8.3.2, pluggy-1.5.0
 rootdir: /path/to/light-weight-agentic-engineering, configfile: pyproject.toml
@@ -619,6 +659,7 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)
 | Plane | Endpoint | Method | Sample Payload | Success Response |
 | :--- | :--- | :--- | :--- | :--- |
 | **System** | `/api/health` | `GET` | *None* | `{"status":"online","runtime":"hybrid-local-cloud"}` |
+| **System** | `/api/system/port-sanity` | `GET` | *None* | `{"onlineCount":12,"totalCount":12,"healthPercentage":100,"allHealthy":true}` |
 | **Agent** | `/api/agent/dispatch` | `POST` | `{"agentId":"website-concierge-agent","prompt":"Explain M2 Metal","actionClass":"read"}` | `{"success":true,"taskId":"task_...","groundednessScore":0.94}` |
 | **Tools** | `/api/mcp/execute` | `POST` | `{"toolName":"git_create_draft_pr","callerRole":"Senior Staff Engineer","actionClass":"draft","parameters":{"ticketId":"LW-4412"}}` | `{"success":true,"result":{"status":"EXECUTED"}}` |
 | **Knowledge** | `/api/knowledge/search` | `POST` | `{"query":"Apple Silicon Metal GPU","topK":2}` | `{"success":true,"count":2,"results":[...]}` |
