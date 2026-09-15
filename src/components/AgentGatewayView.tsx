@@ -175,37 +175,40 @@ export const AgentGatewayView: React.FC = () => {
         </p>
 
         {/* Node Diagram Visualizer */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 relative">
           {langGraphNodes.map((node, index) => {
             const Icon = node.icon;
             const isCurrent = currentExecutingNode === node.id;
             return (
               <div
                 key={node.id}
-                className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                className={`p-4 rounded-xl border transition-all flex flex-col justify-between min-h-[140px] ${
                   isCurrent
                     ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/40 animate-pulse'
-                    : 'bg-slate-950 border-slate-800'
+                    : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                 }`}
               >
                 <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Icon className={`w-4 h-4 ${isCurrent ? 'text-amber-400' : 'text-slate-400'}`} />
-                    <span className={`text-xs font-bold ${isCurrent ? 'text-amber-300' : 'text-slate-200'}`}>
+                  <div className="flex items-start space-x-2 mb-2">
+                    <div className="mt-0.5 shrink-0">
+                      <Icon className={`w-4 h-4 ${isCurrent ? 'text-amber-400' : 'text-slate-400'}`} />
+                    </div>
+                    <span className={`text-xs font-bold leading-snug ${isCurrent ? 'text-amber-300' : 'text-slate-200'}`}>
                       {node.label}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400">{node.desc}</p>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">{node.desc}</p>
                 </div>
-                <div className="mt-3 text-[10px] font-mono text-slate-500">
+                <div className="mt-3 pt-2 border-t border-slate-900 text-[10px] font-mono text-slate-500 flex items-center justify-between">
                   {isCurrent ? (
                     <span className="text-amber-400 font-bold flex items-center space-x-1">
-                      <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                      <RefreshCw className="w-2.5 h-2.5 animate-spin shrink-0" />
                       <span>EXECUTING</span>
                     </span>
                   ) : (
-                    <span>Checkpoint ready</span>
+                    <span>Node #{index + 1}</span>
                   )}
+                  <span className="text-[9px] text-slate-600 font-mono">pg-ckpt</span>
                 </div>
               </div>
             );

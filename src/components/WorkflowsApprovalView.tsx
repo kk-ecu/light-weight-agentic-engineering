@@ -227,9 +227,9 @@ export const WorkflowsApprovalView: React.FC = () => {
                     )}
                   </div>
                   <div className="flex-1 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-white">{act.name}</span>
-                      <span className="font-mono text-[10px] text-slate-500">{act.durationMs}ms</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono font-bold text-white break-words">{act.name}</span>
+                      <span className="font-mono text-[10px] text-slate-500 shrink-0">{act.durationMs}ms</span>
                     </div>
                     {act.details && <p className="text-slate-400 text-[11px] mt-1">{act.details}</p>}
                   </div>

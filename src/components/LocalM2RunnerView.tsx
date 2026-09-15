@@ -601,11 +601,39 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)`,
               <p className="text-xs text-slate-400 leading-relaxed">
                 Connects Enterprise Visitors (Concierge RAG), Engineers (Code Scaffolding), and Release Managers (Approval Gates) with GitHub Enterprise, Jira Software, and Salesforce CRM.
               </p>
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-slate-300 space-y-1">
-                <div>• Public Visitors ──► Concierge RAG (HTTPS)</div>
-                <div>• Enterprise Engineers ──► Portal Scaffolding (HTTPS)</div>
-                <div>• Platform Boundary ──► GitHub MCP Adapter (stdio/REST)</div>
-                <div>• Platform Boundary ──► Jira Software API (REST)</div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs space-y-2">
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Public Visitors</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-amber-300">Concierge RAG</span>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40">HTTPS</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Enterprise Engineers</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-amber-300">Portal Scaffolding</span>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40">HTTPS</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Platform Boundary</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-purple-300">GitHub Adapter</span>
+                    <span className="text-[10px] font-mono text-purple-400 bg-purple-950/40 px-1.5 py-0.5 rounded border border-purple-800/40">MCP / stdio</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-white font-medium">Platform Boundary</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-sky-300">Jira API</span>
+                    <span className="text-[10px] font-mono text-sky-400 bg-sky-950/40 px-1.5 py-0.5 rounded border border-sky-800/40">REST</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -619,11 +647,39 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)`,
               <p className="text-xs text-slate-400 leading-relaxed">
                 Each plane operates as an isolated container: Experience Plane (Vite :3000), Workflow Plane (Temporal :7233), Agent Plane (LangGraph :8001), Knowledge (pgvector :5432), Tools (MCP :8003), and Governance (:8006).
               </p>
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-slate-300 space-y-1">
-                <div>• Agent Gateway (:8001) ──► Policy Service (:8006) via REST</div>
-                <div>• Agent Gateway (:8001) ──► pgvector (:5432) via asyncpg</div>
-                <div>• LLM Gateway (:8002) ──► Ollama Metal (:11434) via HTTP</div>
-                <div>• Workflow Worker ──► Temporal Engine (:7233) via gRPC</div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs space-y-2">
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Agent Gateway (:8001)</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-emerald-300">Policy Service (:8006)</span>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40">REST</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Agent Gateway (:8001)</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-sky-300">pgvector (:5432)</span>
+                    <span className="text-[10px] font-mono text-sky-400 bg-sky-950/40 px-1.5 py-0.5 rounded border border-sky-800/40">asyncpg</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">LLM Gateway (:8002)</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-amber-300">Ollama Metal (:11434)</span>
+                    <span className="text-[10px] font-mono text-amber-400 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-800/40">HTTP</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-white font-medium">Workflow Worker</span>
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <ArrowRight className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="text-purple-300">Temporal Engine (:7233)</span>
+                    <span className="text-[10px] font-mono text-purple-400 bg-purple-950/40 px-1.5 py-0.5 rounded border border-purple-800/40">gRPC</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -637,10 +693,19 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)`,
               <p className="text-xs text-slate-400 leading-relaxed">
                 LangGraph orchestrates cyclical nodes with PostgreSQL checkpointing: validate_intent ➔ retrieve_knowledge ➔ llm_synthesis ➔ eval_gate ➔ tool_dispatch.
               </p>
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-slate-300 space-y-1">
-                <div>• LangGraph StateGraph: AsyncPostgresSaver checkpoints</div>
-                <div>• Scoped Secret Broker: Zero tokens exposed to LLM context</div>
-                <div>• DLP Filter: Regex scrubbing of PII & authorization headers</div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs space-y-2">
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">LangGraph StateGraph</span>
+                  <span className="text-[11px] text-sky-300 font-mono">AsyncPostgresSaver</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Scoped Secret Broker</span>
+                  <span className="text-[11px] text-emerald-300 font-mono">Zero LLM Context Leak</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-white font-medium">DLP Sanitization Hook</span>
+                  <span className="text-[11px] text-amber-300 font-mono">Regex scrubbing PII & auth</span>
+                </div>
               </div>
             </div>
 
@@ -654,10 +719,19 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)`,
               <p className="text-xs text-slate-400 leading-relaxed">
                 Runs 100% on Apple Silicon M2 (16 GB Unified Memory). Ollama consumes 2.2–4.8 GB Metal VRAM; Docker containers consume 1.5 GB; host processes consume 500 MB.
               </p>
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-slate-300 space-y-1">
-                <div>• Total RAM footprint: 5.62 GB / 16.00 GB (35% utilization)</div>
-                <div>• Metal GPU: 16 Cores offload at 48.2 tok/s</div>
-                <div>• Local Cloud Spending: $0.00 / month</div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs space-y-2">
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Total Unified Memory Footprint</span>
+                  <span className="text-[11px] text-emerald-300 font-mono font-bold">5.62 GB / 16.00 GB (35%)</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-900">
+                  <span className="text-white font-medium">Metal GPU Acceleration</span>
+                  <span className="text-[11px] text-purple-300 font-mono font-bold">16 Cores @ 48.2 tok/s</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-white font-medium">Monthly Cloud LLM Spend</span>
+                  <span className="text-[11px] text-amber-300 font-mono font-bold">$0.00 / month</span>
+                </div>
               </div>
             </div>
           </div>
@@ -669,7 +743,7 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)`,
                 <ArrowRight className="w-4 h-4 text-amber-400" />
                 <span>End-to-End Execution Flow (Frontend ➔ Zero-Trust Policy ➔ RAG ➔ Ollama M2 ➔ MCP ➔ Temporal)</span>
               </h4>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                 Step-by-step lifecycle of an engineering request from user submission to cryptographic release gate approval.
               </p>
             </div>
@@ -719,23 +793,23 @@ TOTAL LOCAL MEMORY USAGE ON MAC M2: 5.62 GB / 16.00 GB (35% utilization)`,
                   icon: GitBranch
                 }
               ].map((flow, idx) => (
-                <div key={idx} className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div className="flex items-start space-x-3">
+                <div key={idx} className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex flex-col md:flex-row md:items-start justify-between gap-3 hover:border-slate-700 transition-colors">
+                  <div className="flex items-start space-x-3 flex-1 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
                       <flow.icon className="w-4 h-4" />
                     </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-white">{flow.step}</span>
-                        <span className="text-[10px] text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                        <span className="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-mono">
                           {flow.plane}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-300 mt-1">{flow.action}</p>
+                      <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">{flow.action}</p>
                     </div>
                   </div>
 
-                  <div className="text-[10px] text-slate-400 font-mono bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 self-start md:self-auto shrink-0">
+                  <div className="text-[10px] text-slate-400 font-mono bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 self-start md:self-auto shrink-0 whitespace-nowrap">
                     {flow.tech}
                   </div>
                 </div>
