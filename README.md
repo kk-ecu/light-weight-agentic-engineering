@@ -67,21 +67,52 @@ Modern enterprise AI initiatives fail when they become fragile scripts, leak API
 
 ## 2. The 6 Decoupled Planes (Deep-Dive Architecture)
 
+```mermaid
+flowchart TD
+    subgraph P1["1. Experience Plane (Port 3000)"]
+        UI["Public Discovery Web & Engineering Portal\nReact 18 / Vite / Tailwind CSS"]
+        GW["Express Gateway & Reverse Proxy\nAPI Aggregator for Microservices"]
+    end
+
+    subgraph P2["2. Agent Control Plane & 4. Workflow Plane"]
+        AgentGW["Agent Gateway (FastAPI :8001)\nLangGraph 0.2 Cyclical Graph Engine"]
+        LLMGW["LLM Gateway (FastAPI :8002)\nRegex DLP Prompt Sanitizer"]
+        Ollama["Ollama Metal Engine (:11434)\nllama3.2:3b & qwen2.5-coder:7b @ 48 tok/s"]
+        Temporal["Temporal Orchestrator (:7233 / UI :8233)\nDurable EngineeringPRWorkflow State Machine"]
+        ApprovalSvc["Approval Service (FastAPI :8005)\nHITL Cryptographic Release Gate"]
+    end
+
+    subgraph P3["3. Tool Plane & 5. Knowledge Plane & 6. Governance"]
+        MCPGW["MCP Gateway (FastAPI :8003)\nAction Class Authorization Broker"]
+        GitWorker["GitHub Sandboxed Worker\nBranch Isolation & Draft PR Submission"]
+        RAG["Knowledge Retrieval (FastAPI :8004)\nHNSW Vector Search + BM25 RRF"]
+        Postgres[("PostgreSQL 16 + pgvector (:5432)\n1536-dim Embeddings & State Checkpoints")]
+        PolicySvc["Policy Service (FastAPI :8006)\nZero-Trust RBAC Policy Engine"]
+        RedisDB[("Redis 7 In-Memory Cache (:6379)\nDistributed Session State & Rate Limits")]
+    end
+
+    UI --> GW
+    GW --> AgentGW
+    GW --> Temporal
+    AgentGW --> PolicySvc
+    AgentGW --> RAG
+    AgentGW --> LLMGW
+    LLMGW --> Ollama
+    AgentGW --> MCPGW
+    MCPGW --> GitWorker
+    Temporal --> ApprovalSvc
+    RAG --> Postgres
+    PolicySvc --> RedisDB
 ```
-┌───────────────────────────────────────────────────────────────────────────────────┐
-│                      6-PLANE DECOUPLED ARCHITECTURAL MODEL                        │
-├──────────────────────────┬──────────────────────────┬─────────────────────────────┤
-│ 1. Experience Plane      │ 2. Agent Control Plane   │ 3. Tool Integration Plane   │
-│    • Public Web UI       │    • FastAPI Agent GW    │    • FastAPI MCP Gateway    │
-│    • Engineering Portal  │    • LangGraph StateGraph│    • GitHub Sandboxed Worker│
-│    • Express Gateway     │    • Ollama Metal Engine │    • Scoped Secret Broker   │
-├──────────────────────────┼──────────────────────────┼─────────────────────────────┤
-│ 4. Workflow Plane        │ 5. Knowledge Plane       │ 6. Operations & Governance  │
-│    • Temporal Engine     │    • pgvector Cosine RAG │    • Central Policy Service │
-│    • Workflow Worker     │    • BM25 Full-Text Rank │    • Token Cost Tracking    │
-│    • HITL Approval Gate  │    • ADR Provenance Data │    • Redis Session Cache    │
-└──────────────────────────┴──────────────────────────┴─────────────────────────────┘
-```
+
+| Plane | Core Services | Port / Protocol | Technology Stack | Primary Responsibility |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Experience** | Web UI & Gateway | `3000` (HTTP/REST) | React 18, Vite, Express | Public discovery, C4 viewer, engineering controls |
+| **2. Agent Control** | Agent GW & LLM GW | `8001`, `8002` (FastAPI) | LangGraph 0.2, Ollama Metal | Cyclical graph execution, prompt DLP, checkpointing |
+| **3. Tool Integration** | MCP Gateway & Adapter | `8003` (JSON-RPC) | Model Context Protocol, PyGithub | Zero-trust tool execution, ephemeral secret injection |
+| **4. Workflow** | Temporal Engine & Worker | `7233`, `8233`, `8005` | Temporal.io, Python SDK | Multi-day durable workflows, retry policies, HITL gates |
+| **5. Knowledge** | Retrieval Service & DB | `8004`, `5432` (asyncpg) | pgvector, PostgreSQL 16, HNSW | 1536-dim cosine similarity <=> + BM25 rank fusion |
+| **6. Governance** | Policy & Cost Services | `8006`, `6379` (FastAPI) | OPA Rules, Redis 7 | RBAC action validation, token accounting, M2 savings |
 
 ### Plane 1: Experience Plane
 - **Location**: `planes/experience-plane/`, `src/`, and `server.ts` (Port 3000).
@@ -121,32 +152,44 @@ Modern enterprise AI initiatives fail when they become fragile scripts, leak API
 
 ## 3. Hardware Optimization & Memory Budget (Apple Silicon M2)
 
-The platform is designed to operate locally within the unified memory architecture of standard **Apple Silicon Macs (M2, M2 Pro, M2 Max, M3, M4)**:
+The platform is designed to operate entirely locally within the unified memory architecture of standard **Apple Silicon Macs (M2, M2 Pro, M2 Max, M3, M4)**:
 
+```mermaid
+flowchart TD
+    subgraph AppleM2["Apple Silicon M2 (16.0 GB Unified Memory Budget)"]
+        direction TB
+
+        subgraph MetalGPU["Apple Silicon Metal GPU Subsystem (~4.80 GB)"]
+            M1["llama3.2:3b (4-bit Q4_K_M)\n2.2 GB VRAM Active"]
+            M2["qwen2.5-coder:7b (4-bit Q4_K_M)\n4.8 GB VRAM on-demand"]
+            Perf["Inference: 48.2 tok/s | First-token latency: 18ms"]
+        end
+
+        subgraph DockerServices["Docker Desktop (VirtioFS Enabled) (~1.53 GB)"]
+            D1["PostgreSQL 16 + pgvector (:5432) - 512 MB"]
+            D2["Temporal Orchestrator (:7233) - 680 MB"]
+            D3["Redis 7 Cache (:6379) - 128 MB"]
+            D4["Temporal Web Console (:8233) - 210 MB"]
+        end
+
+        subgraph HostRuntimes["Host Runtime Services (~0.46 GB)"]
+            H1["Node.js / Express Gateway (:3000) - 220 MB"]
+            H2["FastAPI Microservice Fleet (:8001-8006) - 240 MB"]
+        end
+
+        subgraph SystemHeadroom["macOS System & IDE Buffer (~9.21 GB)"]
+            Free["57.5% Free Memory for macOS, IDEs, and Development"]
+        end
+    end
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                 APPLE SILICON MAC M2 HARDWARE (16 GB UNIFIED RAM)            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ macOS Sequoia / Sonoma (Darwin arm64)                                       │
-│                                                                             │
-│  Apple Silicon Metal GPU Subsystem (16 GPU Cores)                           │
-│  • Model: llama3.2:3b (4-bit Q4_K_M) ──────► 2.2 GB VRAM                    │
-│  • Model: qwen2.5-coder:7b (4-bit Q4_K_M) ──► 4.8 GB VRAM (on-demand)       │
-│  • Performance: 48.2 tok/s | First-token latency: 18ms                      │
-│                                                                             │
-│  Docker Desktop (VirtioFS Enabled) - Budget: 6.0 GB                         │
-│  • postgres (pgvector/pgvector:pg16) ──────► 512 MB RAM (Port 5432)         │
-│  • temporal (temporalio/server:1.24) ──────► 680 MB RAM (Port 7233)         │
-│  • redis (redis:7-alpine) ─────────────────► 128 MB RAM (Port 6379)         │
-│  • temporal-web (Temporal Web UI) ─────────► 210 MB RAM (Port 8233)         │
-│                                                                             │
-│  Host Runtime Processes                                                     │
-│  • Full-Stack Gateway: node server.ts ─────► 220 MB RAM (Port 3000)         │
-│  • Python Microservices: uvicorn (FastAPI) ─► 240 MB RAM (Ports 8001+)       │
-│                                                                             │
-│ TOTAL UNIFIED MEMORY CONSUMED: ~5.62 GB / 16.00 GB (35% Utilization)        │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+
+| Subsystem | Components & Services | Allocated RAM | Network Port | Runtime Target |
+| :--- | :--- | :--- | :--- | :--- |
+| **Metal GPU** | `llama3.2:3b` / `qwen2.5-coder:7b` | **4.80 GB** | `11434` | Apple Silicon Metal Shaders |
+| **Docker Core** | PostgreSQL + Temporal + Redis | **1.53 GB** | `5432`, `7233`, `6379` | Containerized (VirtioFS) |
+| **Host Processes** | Node.js Gateway & FastAPI Suite | **0.46 GB** | `3000`, `8001-8006` | Darwin `arm64` Native |
+| **System Headroom**| macOS Sequoia, IDEs, Buffers | **9.21 GB** | *N/A* | 57.5% Free Headroom |
+| **Total Stack** | **Entire 6-Plane Platform** | **6.79 GB / 16.00 GB** | *Local* | **Zero Cloud Inference Cost** |
 
 ---
 
@@ -239,58 +282,108 @@ The platform is designed to operate locally within the unified memory architectu
 
 ### C4 Level 1: System Context Diagram
 
-```
-                       ┌───────────────────────────────┐
-                       │      Enterprise Engineer      │
-                       └──────────────┬────────────────┘
-                                      │ CLI / HTTPS
-                                      ▼
-┌───────────────────────┐   ┌───────────────────────────────────┐   ┌───────────────────────┐
-│   Jira Software API   │◄──┤ light-weight-agentic-engineering  ├──►│   GitHub Enterprise   │
-│ (Acceptance Criteria) │   │  (Mac M2 Apple Silicon Platform)  │   │  (Draft Pull Request) │
-└───────────────────────┘   └─────────────────┬─────────────────┘   └───────────────────────┘
-                                              │ HTTPS / RAG
-                                              ▼
-                               ┌───────────────────────────────┐
-                               │     Public Solution User      │
-                               └───────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Actors["Human Actors"]
+        Dev["Enterprise Engineer\n(CLI, IDE & Web Portal)"]
+        Visitor["Public Discovery User\n(Solution Discovery & Concierge)"]
+        Approver["Release Architect\n(HITL Production Gate Sign-Off)"]
+    end
+
+    subgraph PlatformBoundary["System Boundary: Apple Silicon M2"]
+        Platform["light-weight-agentic-engineering\n6-Plane Decoupled Multi-Agent Platform"]
+    end
+
+    subgraph ExternalServices["External Enterprise SaaS"]
+        Jira["Jira Software\nAcceptance Criteria & Ticket Context"]
+        GitHub["GitHub Enterprise\nDraft Pull Requests & Branch Checks"]
+        CRM["Salesforce CRM\nEnterprise Inquiry Records"]
+    end
+
+    Dev -->|Dispatches Agent Tasks| Platform
+    Visitor -->|Queries Architecture Concierge| Platform
+    Approver -->|Signs Off Release Gates| Platform
+
+    Platform -->|Reads Ticket Scope| Jira
+    Platform -->|Opens Draft PRs via MCP| GitHub
+    Platform -->|Captures Inquiries| CRM
 ```
 
 ### C4 Level 2: Container Diagram (6 Planes)
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              APPLE SILICON MAC M2 BOUNDARY                             │
-├───────────────────────────────────┬────────────────────────────────────────────────────┤
-│ 1. EXPERIENCE PLANE               │ 2. AGENT CONTROL PLANE                             │
-│    • Web Application (Vite :3000) │    • Agent Gateway (FastAPI :8001 / LangGraph)     │
-│    • Express Gateway Server       │    • LLM Gateway (FastAPI :8002 / DLP Regex)       │
-│                                   │    • Ollama Metal GPU Server (Port 11434)          │
-├───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ 3. TOOL INTEGRATION PLANE (MCP)   │ 4. WORKFLOW PLANE                                  │
-│    • MCP Gateway (FastAPI :8003)  │    • Temporal Server (Port 7233 / Web UI: 8233)    │
-│    • GitHub Sandbox Adapter       │    • Temporal Python Worker (Durable state machine)│
-│    • Scoped Secret Broker         │    • Approval Service (FastAPI :8005 HITL Gate)    │
-├───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ 5. KNOWLEDGE PLANE                │ 6. OPERATIONS & GOVERNANCE PLANE                   │
-│    • Retrieval Service (:8004)    │    • Central Policy Engine (FastAPI :8006 / OPA)   │
-│    • PostgreSQL 16 + pgvector     │    • Cost Control Service ($0.00 M2 Calculator)    │
-│      (Port 5432 / HNSW Cosine)    │    • Redis 7 In-Memory Cache (Port 6379)           │
-└───────────────────────────────────┴────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph P1["Plane 1: Experience Plane (:3000)"]
+        WebUI["Web Application\nReact 18 / Vite / Tailwind CSS"]
+        Gateway["Express Gateway Server\nReverse Proxy & Route Aggregator"]
+    end
+
+    subgraph P2["Plane 2: Agent Control Plane (:8001, :8002)"]
+        AgentGW["Agent Gateway (:8001)\nLangGraph 0.2 Cyclical Graph"]
+        LLMGW["LLM Gateway (:8002)\nDLP Prompt Sanitizer"]
+        OllamaEngine["Ollama Metal Engine (:11434)\nLocal Open Weights @ 48.2 tok/s"]
+    end
+
+    subgraph P3["Plane 3: Tool Integration Plane (:8003)"]
+        MCPBroker["MCP Gateway (:8003)\nAction Class Security Broker"]
+        GitAdapter["GitHub Sandbox Worker\nIsolated Subprocess"]
+    end
+
+    subgraph P4["Plane 4: Workflow Plane (:7233, :8233)"]
+        TemporalServer["Temporal Server (:7233)\nDurable Workflow Engine"]
+        WorkflowWorker["Temporal Python Worker\nEngineeringPRWorkflow"]
+        ApprovalGate["Approval Service (:8005)\nHITL Cryptographic Gate"]
+    end
+
+    subgraph P5["Plane 5: Knowledge Plane (:8004, :5432)"]
+        RAGEngine["Retrieval Service (:8004)\nHNSW Cosine + BM25 RRF"]
+        PGStore[("PostgreSQL 16 + pgvector (:5432)\n1536-dim Embeddings & State")]
+    end
+
+    subgraph P6["Plane 6: Governance Plane (:8006, :6379)"]
+        PolicyEngine["Policy Service (:8006)\nZero-Trust Action Checker"]
+        CostEngine["Cost Control Engine\nLocal M2 vs Cloud Tracker"]
+        RedisStore[("Redis 7 Cache (:6379)\nDistributed State")]
+    end
+
+    WebUI --> Gateway
+    Gateway --> AgentGW
+    Gateway --> TemporalServer
+    AgentGW --> PolicyEngine
+    AgentGW --> RAGEngine
+    RAGEngine --> PGStore
+    AgentGW --> LLMGW
+    LLMGW --> OllamaEngine
+    AgentGW --> MCPBroker
+    MCPBroker --> GitAdapter
+    WorkflowWorker --> TemporalServer
+    ApprovalGate --> TemporalServer
+    PolicyEngine --> RedisStore
 ```
 
 ### C4 Level 3: Component Diagram (Gateways & Brokers)
 
-```
-[Agent Gateway :8001]
-   │
-   ├──► 1. Policy Interceptor ─────► POST :8006 /api/v1/policies/evaluate
-   │
-   ├──► 2. LangGraph StateGraph ───► Nodes: validate ➔ retrieve ➔ synthesize ➔ eval ➔ tool
-   │         │
-   │         └──► AsyncPostgresSaver ──► Checkpoint in PostgreSQL :5432
-   │
-   └──► 3. Scoped Secret Broker ───► Injects ephemeral GitHub token into Sandboxed MCP Worker
+```mermaid
+flowchart TD
+    subgraph AgentGWComponent["Agent Gateway (:8001)"]
+        Router["1. Task Dispatcher Router\nPOST /api/v1/tasks/dispatch"]
+        PolicyClient["2. Policy Interceptor\nEnforces Zero-Trust Rules"]
+        StateGraph["3. LangGraph StateGraph\nvalidate ➔ retrieve ➔ synthesize ➔ eval ➔ tool"]
+        Checkpointer["4. AsyncPostgresSaver\nPersists Node State to PostgreSQL"]
+    end
+
+    subgraph MCPComponent["MCP Gateway (:8003)"]
+        ActionValidator["5. Action Class Validator\nChecks read / draft / deploy scope"]
+        SecretBroker["6. Scoped Secret Broker\nInjects Ephemeral Tokens"]
+        Sandbox["7. Sandboxed Executor\nRuns PyGithub in Isolated Subprocess"]
+    end
+
+    Router --> PolicyClient
+    PolicyClient --> StateGraph
+    StateGraph --> Checkpointer
+    StateGraph --> ActionValidator
+    ActionValidator --> SecretBroker
+    SecretBroker --> Sandbox
 ```
 
 ### C4 Level 4: Deployment Topology & Physical Ports
@@ -312,21 +405,31 @@ The platform is designed to operate locally within the unified memory architectu
 
 ### End-to-End Sequence Flow (Jira to Draft PR)
 
-```
-[Developer Request] ──► [Experience Plane :3000]
-                             │
-                             ▼
-[Agent Gateway :8001] ──────► [Policy Engine :8006] (Zero-Trust Action Pre-Check: ALLOWED)
-         │
-         ├──► [Knowledge Plane :8004] (pgvector HNSW Cosine <=> Search in PostgreSQL)
-         │       └── Returns Top 3 Grounded Architecture ADRs
-         │
-         ├──► [LLM Gateway :8002] (Regex DLP scrubs credentials and PII)
-         │       └── [Ollama M2 Metal :11434] Synthesizes code @ 48.2 tok/s ($0.00 cost)
-         │
-         ├──► [MCP Gateway :8003] (Sandboxed worker opens GitHub Draft PR #128)
-         │
-         └──► [Temporal Engine :7233] (Durable state machine halts for Human Release Sign-off)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Engineer as Enterprise Engineer
+    participant Web as Web Gateway (:3000)
+    participant Agent as Agent Gateway (:8001)
+    participant Policy as Policy Engine (:8006)
+    participant Knowledge as Knowledge Plane (:8004)
+    participant LLM as Local LLM Metal (:11434)
+    participant Tools as MCP Tool Broker (:8003)
+    participant Workflow as Temporal Workflow (:7233)
+
+    Engineer->>Web: Dispatch ticket LW-4412 ("Add Redis Cache")
+    Web->>Agent: POST /api/v1/tasks/dispatch
+    Agent->>Policy: Validate ActionClass ('draft')
+    Policy-->>Agent: Action Approved (Zero-Trust Clear)
+    Agent->>Knowledge: Hybrid Search (HNSW <=> + BM25)
+    Knowledge-->>Agent: Grounded Context (3 ADR snippets)
+    Agent->>LLM: Synthesize Code & Tests (DLP Scrubbed)
+    LLM-->>Agent: Code Generated @ 48.2 tok/s ($0.00 cost)
+    Agent->>Tools: Execute git_create_draft_pr
+    Tools-->>Agent: Draft PR #128 opened on GitHub
+    Agent->>Workflow: Register EngineeringPRWorkflow
+    Workflow-->>Web: Workflow paused at HITL Approval Gate
+    Web-->>Engineer: Task Completed: Draft PR ready for review
 ```
 
 ---

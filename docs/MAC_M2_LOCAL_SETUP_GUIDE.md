@@ -50,28 +50,30 @@ This document is the definitive, step-by-step manual for provisioning, running, 
 ### C4 Level 1: System Context Diagram
 
 ```mermaid
-C4Context
-    title C4 Level 1: System Context Diagram - light-weight-agentic-engineering
+flowchart TD
+    subgraph Actors["Human Actors"]
+        Dev["Enterprise Engineer\nRequests PR drafting, test gen & ADR query"]
+        Visitor["Public Discovery User\nExplores solution blueprints & architectural concierge"]
+        Approver["Release Architect\nInspects release dossiers & signs off HITL gate"]
+    end
 
-    Person(developer, "Enterprise Engineer", "Requests PR drafting, ADR reviews, and test generation")
-    Person(visitor, "Public Discovery User", "Explores solution blueprints and queries architecture concierge")
-    Person(approver, "Release Architect", "Inspects release dossiers and provides cryptographic sign-off")
+    subgraph SystemBoundary["Local Mac M2 / Cloud Infrastructure Boundary"]
+        Platform["light-weight-agentic-engineering\n6-Plane Multi-Agent Engineering Platform\nFastAPI, LangGraph 0.2, pgvector, Temporal, Ollama Metal"]
+    end
 
-    Enterprise_Boundary(b0, "Local Mac M2 / Cloud Infrastructure") {
-        System(platform, "light-weight-agentic-engineering", "6-plane multi-agent platform running local Ollama, LangGraph, pgvector, and Temporal")
-    }
+    subgraph ExternalIntegrations["External SaaS Systems"]
+        GitHub["GitHub Enterprise\nRepository hosting, branches & Draft PRs"]
+        Jira["Jira Software\nIssue tracking & acceptance criteria"]
+        CRM["Salesforce CRM\nEnterprise consultation records"]
+    end
 
-    System_Ext(github, "GitHub Enterprise", "Repository hosting, branch management, and Draft PRs")
-    System_Ext(jira, "Jira Software", "Issue tracking, acceptance criteria, and status updates")
-    System_Ext(crm, "Salesforce CRM", "Consultation lead tracking and engagement records")
+    Dev -->|HTTPS / CLI| Platform
+    Visitor -->|HTTPS / Web| Platform
+    Approver -->|HTTPS / HITL| Platform
 
-    Rel(developer, platform, "Triggers code scaffolding & runs local test suites", "HTTPS / CLI")
-    Rel(visitor, platform, "Explores solution architectures & runs concierge RAG", "HTTPS / Web")
-    Rel(approver, platform, "Signs off Temporal production promotion gates", "HTTPS / HITL")
-
-    Rel(platform, github, "Creates branches and opens Draft PRs via MCP", "MCP over stdio/HTTP")
-    Rel(platform, jira, "Reads ticket criteria and posts progress logs", "REST / MCP")
-    Rel(platform, crm, "Drafts customer inquiry records", "REST API")
+    Platform -->|MCP over stdio / HTTP| GitHub
+    Platform -->|REST / MCP| Jira
+    Platform -->|REST API| CRM
 ```
 
 ---
@@ -79,52 +81,53 @@ C4Context
 ### C4 Level 2: Container Architecture (6 Planes)
 
 ```mermaid
-C4Container
-    title C4 Level 2: Container Diagram - 6 Decoupled Planes on Apple Silicon M2
+flowchart TD
+    subgraph P1["Plane 1: Experience Plane"]
+        WebApp["Web Portal UI (:3000)\nReact 18 / Vite / Tailwind CSS"]
+        NodeGateway["Express Gateway (:3000)\nReverse Proxy & Route Aggregator"]
+    end
 
-    Container_Boundary(exp_plane, "1. Experience Plane") {
-        Container(web_app, "Public Discovery Web & Control Plane", "React 18 / Vite / Tailwind", "Port 3000 - Interactive UI, C4 viewer, agent playground")
-        Container(server_gateway, "Node.js / Express Gateway", "TypeScript / Express", "Port 3000 - Aggregator & proxy for Python microservices")
-    }
+    subgraph P2["Plane 2: Agent Control Plane"]
+        AgentGW["Agent Gateway (:8001)\nLangGraph Cyclic State Machine"]
+        LLMGW["LLM Gateway (:8002)\nDLP Prompt Filter & Metal Proxy"]
+        OllamaServer["Ollama Server (:11434)\nApple Silicon Metal GPU Inference"]
+    end
 
-    Container_Boundary(agent_plane, "2. Agent Control Plane") {
-        Container(agent_gw, "Agent Gateway", "FastAPI / Python 3.11", "Port 8001 - LangGraph cyclic state machine and checkpointing")
-        Container(llm_gw, "LLM Gateway", "FastAPI / Python 3.11", "Port 8002 - DLP regex scrubbing, local Ollama proxy, Metal routing")
-        Container(ollama, "Ollama Server (Local Metal)", "Ollama C++ / Metal GPU", "Port 11434 - Runs llama3.2:3b and qwen2.5-coder:7b at 48 tok/s")
-    }
+    subgraph P3["Plane 3: Tool Integration Plane"]
+        MCPGW["MCP Tool Gateway (:8003)\nZero-Trust Action Class Validation"]
+        GitAdapter["GitHub MCP Worker\nIsolated Subprocess Sandbox"]
+    end
 
-    Container_Boundary(tool_plane, "3. Tool Integration Plane") {
-        Container(mcp_gw, "MCP Tool Gateway", "FastAPI / Python 3.11", "Port 8003 - Zero-trust action class enforcement (read/draft/deploy)")
-        Container(git_adapter, "GitHub MCP Adapter", "Python / PyGithub", "Sandboxed worker for isolated branch and draft PR execution")
-    }
+    subgraph P4["Plane 4: Workflow Plane"]
+        TemporalSvr["Temporal Orchestrator (:7233 / UI :8233)\nDurable Workflow State Machine"]
+        TemporalWorker["Temporal Python Worker\nEngineeringPRWorkflow"]
+        ApprovalSvc["Approval Service (:8005)\nHITL Cryptographic Signal Dispatch"]
+    end
 
-    Container_Boundary(workflow_plane, "4. Workflow Plane") {
-        Container(temporal_server, "Temporal Orchestrator", "Go / Temporal Server", "Port 7233 (UI: 8233) - Durable state machine execution")
-        Container(wf_runtime, "Temporal Python Worker", "Python temporalio SDK", "Executes EngineeringPRWorkflow with automatic retries")
-        Container(approval_svc, "Approval Service", "FastAPI", "Port 8005 - Dispatches cryptographic HITL promotion signals")
-    }
+    subgraph P5["Plane 5: Knowledge Plane"]
+        RetrievalSvc["Knowledge Retrieval (:8004)\nCosine Similarity <=> + BM25 RRF"]
+        PostgresDB[("PostgreSQL 16 + pgvector (:5432)\n1536-dim Vector Store & Checkpoints")]
+    end
 
-    Container_Boundary(knowledge_plane, "5. Knowledge Plane") {
-        Container(retrieval_svc, "Knowledge Retrieval Service", "FastAPI / asyncpg", "Port 8004 - Cosine similarity + BM25 Reciprocal Rank Fusion")
-        ContainerDb(postgres_pgvector, "PostgreSQL 16 + pgvector", "PostgreSQL / HNSW", "Port 5432 - 1536-dim vector store & LangGraph checkpoints")
-    }
+    subgraph P6["Plane 6: Governance Plane"]
+        PolicySvc["Policy Service (:8006)\nCentral Zero-Trust RBAC Engine"]
+        CostSvc["Cost Control Engine\nLocal M2 Hardware Savings Tracker"]
+        RedisCache[("Redis 7 Cache (:6379)\nDistributed Session & Rate Limits")]
+    end
 
-    Container_Boundary(gov_plane, "6. Operations & Governance Plane") {
-        Container(policy_svc, "Central Policy Engine", "FastAPI / OPA rules", "Port 8006 - Evaluates RBAC action classes prior to tool dispatch")
-        Container(cost_svc, "Cost Control Service", "Python", "Tracks token consumption and $0.00 M2 local hardware savings")
-        ContainerDb(redis_cache, "Redis 7 Cache", "Redis in-memory", "Port 6379 - Session cache and rate-limiting counters")
-    }
-
-    Rel(web_app, server_gateway, "Internal API calls", "HTTP / JSON")
-    Rel(server_gateway, agent_gw, "Dispatches agent tasks", "HTTP / REST")
-    Rel(agent_gw, policy_svc, "Validates action permissions", "HTTP / REST")
-    Rel(agent_gw, retrieval_svc, "Retrieves vector context", "HTTP / asyncpg")
-    Rel(retrieval_svc, postgres_pgvector, "Cosine distance query (<=>)", "SQL / HNSW")
-    Rel(agent_gw, llm_gw, "Requests code/text synthesis", "HTTP / REST")
-    Rel(llm_gw, ollama, "Submits sanitized prompt to Metal GPU", "HTTP / Metal API")
-    Rel(agent_gw, mcp_gw, "Executes tool actions", "JSON-RPC / MCP")
-    Rel(mcp_gw, git_adapter, "Runs isolated git operations", "stdio / Subprocess")
-    Rel(wf_runtime, temporal_server, "Registers workflow activities", "gRPC :7233")
+    WebApp --> NodeGateway
+    NodeGateway --> AgentGW
+    NodeGateway --> TemporalSvr
+    AgentGW --> PolicySvc
+    AgentGW --> RetrievalSvc
+    RetrievalSvc --> PostgresDB
+    AgentGW --> LLMGW
+    LLMGW --> OllamaServer
+    AgentGW --> MCPGW
+    MCPGW --> GitAdapter
+    TemporalWorker --> TemporalSvr
+    ApprovalSvc --> TemporalSvr
+    PolicySvc --> RedisCache
 ```
 
 ---
@@ -132,76 +135,70 @@ C4Container
 ### C4 Level 3: Component Diagram (Agent & Tool Gateways)
 
 ```mermaid
-C4Component
-    title C4 Level 3: Component Diagram - Internal Agent Control Plane & MCP Broker
+flowchart TD
+    subgraph AgentBoundary["Agent Gateway (:8001)"]
+        Router["Task Dispatcher Router\nValidates AgentTaskEnvelope"]
+        PolicyClient["Policy Interceptor\nEnforces Zero-Trust Rules"]
+        StateGraph["LangGraph StateGraph\nvalidate ➔ retrieve ➔ synthesize ➔ eval ➔ tool"]
+        Checkpointer["PostgreSQL Checkpointer\nAsyncPostgresSaver writes to :5432"]
+    end
 
-    Container_Boundary(agent_box, "Agent Gateway (FastAPI)") {
-        Component(task_router, "Task Dispatcher", "FastAPI Router", "Validates AgentTaskEnvelope payload and authenticates caller")
-        Component(policy_client, "Policy Interceptor", "HTTPX Client", "Enforces zero-trust policy before graph initialization")
-        Component(langgraph_engine, "LangGraph StateGraph", "LangGraph 0.2", "Executes cyclic nodes: validate -> retrieve -> synthesize -> eval -> tool")
-        Component(postgres_saver, "Postgres Checkpointer", "AsyncPostgresSaver", "Persists conversation thread state and history into pgvector db")
-    }
+    subgraph MCPBoundary["MCP Tool Gateway (:8003)"]
+        ActionValidator["Action Class Validator\nRestricts destructive operations (RBAC)"]
+        SecretBroker["Scoped Secret Broker\nInjects Ephemeral GitHub Tokens"]
+        SandboxExec["Sandbox Executor\nExecutes PyGithub in Docker Subprocess"]
+    end
 
-    Container_Boundary(mcp_box, "MCP Tool Gateway (FastAPI)") {
-        Component(action_validator, "Action Class Validator", "Pydantic validator", "Restricts destructive operations to authorized roles")
-        Component(secret_broker, "Scoped Secret Broker", "Vault / Env Injector", "Injects ephemeral GitHub/Jira tokens without LLM exposure")
-        Component(sandbox_exec, "Sandbox Executor", "Docker Subprocess", "Runs tool adapter in an isolated, read-only filesystem container")
-    }
-
-    Rel(task_router, policy_client, "1. Verify permissions")
-    Rel(policy_client, langgraph_engine, "2. Permission approved")
-    Rel(langgraph_engine, postgres_saver, "Saves node checkpoint")
-    Rel(langgraph_engine, action_validator, "3. Dispatch MCP tool call")
-    Rel(action_validator, secret_broker, "4. Inject ephemeral token")
-    Rel(secret_broker, sandbox_exec, "5. Execute adapter in sandbox")
+    Router -->|1. Verify permissions| PolicyClient
+    PolicyClient -->|2. Permission approved| StateGraph
+    StateGraph -->|Checkpoints node state| Checkpointer
+    StateGraph -->|3. Dispatch MCP tool call| ActionValidator
+    ActionValidator -->|4. Request token injection| SecretBroker
+    SecretBroker -->|5. Execute adapter in sandbox| SandboxExec
 ```
 
 ---
 
 ### C4 Level 4: Mac M2 Deployment Topology & Memory Allocation
 
+```mermaid
+flowchart TD
+    subgraph MacM2Hardware["Apple Silicon Mac M2 Hardware (16 GB Unified RAM)"]
+        direction TB
+
+        subgraph MetalSubsystem["Apple Silicon Metal GPU Subsystem (16 GPU Cores)"]
+            OllamaProc["Ollama Engine (:11434)\nllama3.2:3b (2.2 GB VRAM Active)\nqwen2.5-coder:7b (4.8 GB on-demand)\nSpeed: 48.2 tok/s | First-token latency: 18ms"]
+        end
+
+        subgraph DockerSubsystem["Docker Desktop for Mac (VirtioFS Enabled) - Budget: 6.0 GB"]
+            PGContainer["PostgreSQL 16 + pgvector (:5432)\nAllocated RAM: 512 MB"]
+            TemporalContainer["Temporal Server (:7233 / UI :8233)\nAllocated RAM: 680 MB + 210 MB"]
+            RedisContainer["Redis 7 Alpine (:6379)\nAllocated RAM: 128 MB"]
+        end
+
+        subgraph HostRuntimes["Host Runtime Services (Native arm64)"]
+            HostGateway["Node.js / Express Gateway (:3000)\nAllocated RAM: 220 MB"]
+            HostFastAPI["FastAPI Python Microservices (:8001-8006)\nAllocated RAM: 240 MB"]
+            HostWorker["Temporal Python Worker\nAllocated RAM: 180 MB"]
+        end
+
+        subgraph HeadroomSubsystem["macOS System Buffer"]
+            Headroom["macOS Sequoia + Developer IDEs & Tools\nRemaining Free Unified RAM: 9.21 GB (57.5% headroom)"]
+        end
+    end
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                 APPLE SILICON MAC M2 HARDWARE (16 GB UNIFIED RAM)            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ macOS Sequoia / Sonoma (Darwin arm64)                                       │
-│                                                                             │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │ Apple Silicon Metal GPU Subsystem (16 GPU Cores)                      │  │
-│  │                                                                       │  │
-│  │  [Ollama Server Process] (Metal Acceleration Active)                  │  │
-│  │  • Model: llama3.2:3b (4-bit Q4_K_M) ──────► 2.2 GB VRAM              │  │
-│  │  • Model: qwen2.5-coder:7b (4-bit Q4_K_M) ──► 4.8 GB VRAM (on-demand) │  │
-│  │  • Inference speed: 48.2 tok/s | First-token latency: 18ms            │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │ Docker Desktop for Mac (VirtioFS Enabled) - Memory Budget: 6.0 GB     │  │
-│  │                                                                       │  │
-│  │  ┌─────────────────────────┐  ┌─────────────────────────────────────┐ │  │
-│  │  │ Container: postgres     │  │ Container: temporal                 │ │  │
-│  │  │ pgvector/pgvector:pg16  │  │ temporalio/server:1.24.2            │ │  │
-│  │  │ Port 5432 (RAM: 512 MB) │  │ Port 7233 (RAM: 680 MB)             │ │  │
-│  │  └─────────────────────────┘  └─────────────────────────────────────┘ │  │
-│  │  ┌─────────────────────────┐  ┌─────────────────────────────────────┐ │  │
-│  │  │ Container: redis        │  │ Container: temporal-web             │ │  │
-│  │  │ redis:7-alpine          │  │ temporalio/web:latest               │ │  │
-│  │  │ Port 6379 (RAM: 128 MB) │  │ Port 8233 (RAM: 210 MB)             │ │  │
-│  │  └─────────────────────────┘  └─────────────────────────────────────┘ │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │ Host Python 3.11 & Node.js Runtime (Outside Docker for Speed)         │  │
-│  │  • Full-Stack Gateway & Web Portal: node server.ts (Port 3000)        │  │
-│  │  • FastAPI Agent Gateway: uvicorn (Port 8001)                         │  │
-│  │  • FastAPI LLM Gateway: uvicorn (Port 8002)                           │  │
-│  │  • FastAPI MCP Gateway: uvicorn (Port 8003)                           │  │
-│  │  • Temporal Python Worker: python -m worker (Activity listener)       │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│ TOTAL MEMORY CONSUMED ON MAC M2: ~5.62 GB / 16.00 GB (35% Utilization)       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+
+| Deployment Tier | Process / Container | Port / Interface | Memory Footprint | Runtime Environment |
+| :--- | :--- | :--- | :--- | :--- |
+| **Metal GPU** | Ollama Metal Shaders | `11434` (HTTP) | **4.80 GB** | Native Apple Silicon GPU |
+| **Docker Stack** | PostgreSQL 16 + pgvector | `5432` (TCP) | **512 MB** | Docker Desktop (VirtioFS) |
+| **Docker Stack** | Temporal Orchestrator + Web UI | `7233`, `8233` (gRPC/HTTP)| **890 MB** | Docker Desktop (VirtioFS) |
+| **Docker Stack** | Redis 7 Alpine | `6379` (TCP) | **128 MB** | Docker Desktop (VirtioFS) |
+| **Host Process** | Node.js Gateway & Portal UI | `3000` (HTTP) | **220 MB** | Host macOS (`node server.ts`) |
+| **Host Process** | Python FastAPI Fleet | `8001-8006` (REST) | **240 MB** | Host macOS (`uvicorn`) |
+| **Host Process** | Temporal Activity Worker | *Internal gRPC* | **180 MB** | Host macOS (`python -m worker`) |
+| **Free Headroom**| macOS Sonoma/Sequoia & IDEs | *System* | **9.21 GB** | Host Hardware Buffer (57.5%) |
+| **Platform Total**| **Full 6-Plane Local System** | **All Local Ports** | **6.79 GB / 16.00 GB**| **$0.00 / month Local Compute** |
 
 ---
 
@@ -211,61 +208,36 @@ C4Component
 sequenceDiagram
     autonumber
     actor Dev as Developer / Engineer
-    participant Web as Web & Gateway (:3000)
+    participant Web as Web Gateway (:3000)
     participant AgentGW as Agent Gateway (:8001)
     participant Policy as Policy Engine (:8006)
     participant RAG as Knowledge Engine (:8004)
-    participant Postgres as pgvector (:5432)
     participant LLMGW as LLM Gateway (:8002)
-    participant Ollama as Ollama M2 Metal (:11434)
     participant MCP as MCP Tool Gateway (:8003)
-    participant GitHub as GitHub Enterprise
-    participant Temporal as Temporal (:7233)
+    participant Temporal as Temporal Server (:7233)
 
     Dev->>Web: Submit Task: "Scaffold Redis cache for payment endpoint"
     Web->>AgentGW: POST /api/v1/tasks/dispatch (ActionClass: draft)
     
-    rect rgb(240, 248, 255)
-        note over AgentGW,Policy: Zero-Trust Security Gate
-        AgentGW->>Policy: POST /api/v1/policies/evaluate (agent_id, action_class)
-        Policy-->>AgentGW: 200 OK: {"allowed": true, "reason": "Role permitted"}
-    end
+    AgentGW->>Policy: Evaluate Role & Action Permissions
+    Policy-->>AgentGW: 200 OK: {"allowed": true, "reason": "Role permitted"}
 
-    rect rgb(255, 250, 240)
-        note over AgentGW,Postgres: Grounded Retrieval (Knowledge Plane)
-        AgentGW->>RAG: hybrid_search(query_vector, "Redis cache")
-        RAG->>Postgres: SELECT ... ORDER BY cosine_sim + bm25_score
-        Postgres-->>RAG: Return Top 3 ADR snippets (ADR-004, ADR-007)
-        RAG-->>AgentGW: 3 Grounded Chunks with citation IDs
-    end
+    AgentGW->>RAG: Hybrid Search ("Redis cache payment endpoint")
+    RAG-->>AgentGW: Top 3 Grounded ADR Snippets with Citation IDs
 
-    rect rgb(245, 255, 245)
-        note over AgentGW,Ollama: Zero-Cost Local Inference (Agent Control Plane)
-        AgentGW->>LLMGW: POST /v1/chat/completions (Grounding Context + Prompt)
-        LLMGW->>LLMGW: DLP regex scrub (Redacts credentials & PII)
-        LLMGW->>Ollama: POST /api/chat (qwen2.5-coder:7b)
-        note over Ollama: 16 GPU Cores Metal inference @ 48.2 tok/s
-        Ollama-->>LLMGW: Synthesized Python Code + 6 Unit Tests
-        LLMGW-->>AgentGW: Sanitized Code Completion
-    end
+    AgentGW->>LLMGW: POST /v1/chat/completions (Grounding Context + Prompt)
+    LLMGW->>LLMGW: DLP Regex Scrubbing (Removes API Keys & PII)
+    LLMGW-->>AgentGW: Synthesized Python Code + 6 Unit Tests @ 48.2 tok/s ($0.00)
 
-    rect rgb(255, 245, 245)
-        note over AgentGW,GitHub: Zero-Trust Tool Brokerage (Tool Integration Plane)
-        AgentGW->>MCP: POST /mcp/v1/tools/execute (git_create_draft_pr)
-        MCP->>MCP: Action class check: 'draft' permitted (No master token exposed)
-        MCP->>GitHub: Open Draft PR #128 on feat/lw-4412
-        GitHub-->>MCP: PR Created (Draft Status)
-        MCP-->>AgentGW: {"status": "SUCCESS", "pr_url": "https://github.com/..."}
-    end
+    AgentGW->>MCP: POST /mcp/v1/tools/execute (git_create_draft_pr)
+    MCP->>MCP: Ephemeral Token Injection & Sandbox Branch Execution
+    MCP-->>AgentGW: Draft PR Created: https://github.com/agentic/core/pull/128
 
-    rect rgb(248, 248, 255)
-        note over AgentGW,Temporal: Durable State Machine & HITL Approval
-        AgentGW->>Temporal: Start Workflow: EngineeringPRWorkflow
-        Temporal-->>AgentGW: Workflow ID: WF-LW-202609-089 (Status: WAITING_APPROVAL)
-    end
+    AgentGW->>Temporal: Start Workflow: EngineeringPRWorkflow
+    Temporal-->>AgentGW: Workflow Registered (Status: WAITING_FOR_HITL_APPROVAL)
 
-    AgentGW-->>Web: Complete Task Dossier with PR URL & Test Reports
-    Web-->>Dev: Display Interactive Summary & Diff Viewer
+    AgentGW-->>Web: Complete Dossier with Draft PR URL & Verification Results
+    Web-->>Dev: Render Interactive Diff Viewer & Approval Interface
 ```
 
 ---
