@@ -20,6 +20,16 @@ export interface FileCodeSnippet {
 export const MONOREPO_FILES: FileCodeSnippet[] = [
   // 1. Root Configurations
   {
+    path: 'README.md',
+    name: 'README.md',
+    category: 'Root Config',
+    language: 'markdown',
+    description: 'Master enterprise architecture manual: 6-plane decoupled design, Apple Silicon M2 Metal optimization, C4 models, step-by-step setup guide with expected outputs, and API matrix.',
+    content: `# light-weight-agentic-engineering
+Enterprise Multi-Agent Engineering Platform across 6 Decoupled Planes.
+Refer to /README.md on disk for the complete master documentation, C4 models, and local setup guide.`
+  },
+  {
     path: 'docker-compose.local.yml',
     name: 'docker-compose.local.yml',
     category: 'Root Config',
@@ -679,6 +689,36 @@ class AgentTaskEnvelope(BaseModel):
   },
 
   // 9. Infrastructure & Local M2
+  {
+    path: 'docs/MAC_M2_LOCAL_SETUP_GUIDE.md',
+    name: 'MAC_M2_LOCAL_SETUP_GUIDE.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Comprehensive step-by-step setup guide for Apple Silicon Mac M2 with exact commands, side-by-side expected outputs, and C4 architecture diagrams.',
+    content: `# Apple Silicon Mac M2 Local Setup Guide & Architecture Manual
+# Refer to /docs/MAC_M2_LOCAL_SETUP_GUIDE.md for complete details.
+Run './infra/scripts/setup-mac-m2.sh' for 1-click automated setup.`
+  },
+  {
+    path: 'infra/scripts/setup-mac-m2.sh',
+    name: 'setup-mac-m2.sh',
+    category: 'Infrastructure',
+    language: 'bash',
+    description: 'Automated 1-click bootstrap script for Mac M2: hardware checks, docker start, model pull, pgvector verify, and e2e test execution.',
+    content: `#!/usr/bin/env bash
+# light-weight-agentic-engineering Mac M2 Setup Script
+chmod +x infra/scripts/setup-mac-m2.sh && ./infra/scripts/setup-mac-m2.sh`
+  },
+  {
+    path: 'infra/scripts/verify-mac-m2.sh',
+    name: 'verify-mac-m2.sh',
+    category: 'Infrastructure',
+    language: 'bash',
+    description: 'Automated endpoint verification script asserting HTTP 200 responses across all microservices on Apple Silicon Mac M2.',
+    content: `#!/usr/bin/env bash
+# Microservice Health & Verification Suite
+./infra/scripts/verify-mac-m2.sh`
+  },
   {
     path: 'infra/scripts/bootstrap-local.sh',
     name: 'bootstrap-local.sh',
