@@ -9,7 +9,13 @@
 [![Agent Framework: LangGraph](https://img.shields.io/badge/Agent%20Control-LangGraph%200.2-green.svg)](#plane-2-agent-control-plane)
 [![Vector Engine: pgvector](https://img.shields.io/badge/Knowledge%20RAG-pgvector%20HNSW-336791.svg)](#plane-5-knowledge-plane)
 [![Security: Model Context Protocol](https://img.shields.io/badge/Security-Zero--Trust%20MCP%20Broker-red.svg)](#plane-3-tool-integration-plane)
+[![Master Training Playbook](https://img.shields.io/badge/Training-1000%2B%20Engineers%20Playbook-purple.svg)](docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
+
+---
+
+> 🎓 **1,000+ Engineer Enterprise Masterclass Training Playbook**:  
+> Delivering a technical training session? Check out [docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md](docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md) for a completely self-contained, 120-minute presenter playbook with minute-by-minute facilitator timeline, live command-by-command demo runbook, terminal outputs, and architectural Q&A.
 
 ---
 

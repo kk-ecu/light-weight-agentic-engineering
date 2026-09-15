@@ -690,6 +690,16 @@ class AgentTaskEnvelope(BaseModel):
 
   // 9. Infrastructure & Local M2
   {
+    path: 'docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
+    name: 'ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
+    category: 'Infrastructure',
+    language: 'markdown',
+    description: 'Self-contained 1,000+ engineer masterclass training playbook: 120-minute presenter timeline, concept breakdown across 6 planes, terminal runbook, and Q&A handbook.',
+    content: `# Enterprise Multi-Agent Systems Masterclass: 1,000+ Engineer Training Playbook
+# Complete 120-minute self-contained training guide.
+# Refer to /docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md for the full, unabridged text, terminal commands, and API payloads.`
+  },
+  {
     path: 'docs/MAC_M2_LOCAL_SETUP_GUIDE.md',
     name: 'MAC_M2_LOCAL_SETUP_GUIDE.md',
     category: 'Infrastructure',
