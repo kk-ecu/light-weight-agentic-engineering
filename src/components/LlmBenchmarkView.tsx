@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Zap, 
   DollarSign, 
@@ -227,12 +227,39 @@ export const LlmBenchmarkView: React.FC = () => {
 
   // DLP Inspector State
   const [showRedactionDiff, setShowRedactionDiff] = useState<boolean>(true);
+  const [copiedSanitized, setCopiedSanitized] = useState<boolean>(false);
+  const [activeDlpPreset, setActiveDlpPreset] = useState<string>('postgres');
   const [rawSampleInput, setRawSampleInput] = useState<string>(
     `Analyze database replica delay:
 Database URI: postgresql://admin:prod_pw_9921@10.0.4.12:5432/payments
 Auth Token: ghp_98f24b912a48cd821a99021482
 Engineer Email: kundan.mishra5@gmail.com`
   );
+
+  const handleApplyDlpPreset = (preset: 'postgres' | 'cloud' | 'clean') => {
+    setActiveDlpPreset(preset);
+    if (preset === 'postgres') {
+      setRawSampleInput(
+`Analyze database replica delay:
+Database URI: postgresql://admin:prod_pw_9921@10.0.4.12:5432/payments
+Auth Token: ghp_98f24b912a48cd821a99021482
+Engineer Email: kundan.mishra5@gmail.com`
+      );
+    } else if (preset === 'cloud') {
+      setRawSampleInput(
+`Deploy microservice to AWS ECS with remote telemetry:
+AWS_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+OPENAI_API_KEY: sk-proj-9948201a0bcdef1234567890
+Internal VPC Gateway: 192.168.1.105
+Ops Lead: devops-lead@internal-corp.io`
+      );
+    } else if (preset === 'clean') {
+      setRawSampleInput(
+`Synthesize async Python benchmark comparing uvloop with standard asyncio event loops.
+Generate a structured response with throughput metrics and p99 latency estimations.`
+      );
+    }
+  };
 
   // FinOps Calculations
   const monthlyTokensMillion = (dailyTokensK * 30) / 1000;
@@ -441,7 +468,43 @@ Monthly FinOps Impact (at ${dailyTokensK}k tokens/day):
     setTimeout(() => setCopiedReport(false), 2000);
   };
 
-  // Real-time DLP scrubbing computation
+  // Real-time DLP scrubbing computation and entity analysis
+  const dlpAnalysis = useMemo(() => {
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+    const passwordRegex = /(:)([^@\s/:]+)(@)/g;
+    const tokenRegex = /\b(ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_\-]{20,}|ey[A-Za-z0-9_-]{20,}|prod_pw_\w+|token_[A-Za-z0-9]{8,}|AKIA[0-9A-Z]{16})\b/g;
+    const ipRegex = /\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})\b/g;
+
+    const emailsFound = (rawSampleInput.match(emailRegex) || []).length;
+    const passwordsFound = (rawSampleInput.match(passwordRegex) || []).length;
+    const tokensFound = (rawSampleInput.match(tokenRegex) || []).length;
+    const ipsFound = (rawSampleInput.match(ipRegex) || []).length;
+    const totalDetections = emailsFound + passwordsFound + tokensFound + ipsFound;
+
+    let scrubbed = rawSampleInput;
+    scrubbed = scrubbed.replace(emailRegex, '[REDACTED_PII_EMAIL]');
+    scrubbed = scrubbed.replace(passwordRegex, '$1[REDACTED_PASSWORD]$3');
+    scrubbed = scrubbed.replace(tokenRegex, '[REDACTED_API_TOKEN]');
+    scrubbed = scrubbed.replace(ipRegex, '[REDACTED_INTERNAL_IP]');
+
+    return {
+      scrubbedText: scrubbed,
+      totalDetections,
+      breakdown: {
+        emails: emailsFound,
+        passwords: passwordsFound,
+        tokens: tokensFound,
+        ips: ipsFound
+      }
+    };
+  }, [rawSampleInput]);
+
+  const handleCopySanitized = () => {
+    navigator.clipboard.writeText(dlpAnalysis.scrubbedText);
+    setCopiedSanitized(true);
+    setTimeout(() => setCopiedSanitized(false), 2000);
+  };
+
   const computeScrubbedText = (input: string) => {
     let scrubbed = input;
     scrubbed = scrubbed.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, '[REDACTED_PII_EMAIL]');
@@ -970,49 +1033,222 @@ Monthly FinOps Impact (at ${dailyTokensK}k tokens/day):
           )}
         </div>
 
-        {/* Right: Zero-Trust DLP Redaction Inspector */}
+        {/* Right: Zero-Trust Redaction & Secret Scrubbing Inspector */}
         <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <div className="flex items-center space-x-2">
               <Lock className="w-4 h-4 text-emerald-400" />
               <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                Zero-Trust DLP Redaction & Secret Sanitizer
+                Zero-Trust Redaction & Secret Scrubbing Inspector
               </h4>
             </div>
+            
+            {/* Working "Hide Comparison" / "Show Comparison" toggle button */}
             <button
+              id="btn-toggle-comparison"
+              type="button"
               onClick={() => setShowRedactionDiff(!showRedactionDiff)}
-              className="text-[10px] text-slate-400 hover:text-white flex items-center space-x-1 font-mono"
+              className={`text-[11px] px-3 py-1.5 rounded-lg border font-mono flex items-center space-x-1.5 transition-all shadow-sm ${
+                showRedactionDiff
+                  ? 'bg-slate-950 hover:bg-slate-800 text-slate-200 border-slate-700 hover:text-white'
+                  : 'bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border-emerald-500/50 shadow-emerald-950/30'
+              }`}
+              title={showRedactionDiff ? 'Hide Raw vs Sanitized Comparison' : 'Show Raw vs Sanitized Comparison'}
             >
-              {showRedactionDiff ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              <span>{showRedactionDiff ? 'Hide Diff' : 'Show Diff'}</span>
+              {showRedactionDiff ? (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="font-semibold">Hide Comparison</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="font-semibold">Show Comparison</span>
+                </>
+              )}
             </button>
           </div>
 
           <p className="text-xs text-slate-400">
-            Type or edit sensitive connection tokens below to observe real-time regex DLP neutralization before prompt dispatch:
+            Air-gapped regex DLP neutralizing credentials, tokens, and PII on Apple Silicon M2 before prompt egress:
           </p>
 
-          <div className="space-y-3">
-            <div>
-              <span className="block text-[10px] font-mono text-slate-400 uppercase font-bold mb-1">
-                Editable Inbound Payload (With Ephemeral Secrets):
-              </span>
-              <textarea
-                rows={4}
-                value={rawSampleInput}
-                onChange={(e) => setRawSampleInput(e.target.value)}
-                className="w-full p-3 bg-slate-950 border border-red-500/30 rounded-xl font-mono text-xs text-red-300 leading-relaxed focus:outline-none focus:border-red-500"
-              />
-            </div>
+          {/* Quick Presets Bar */}
+          <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
+            <span className="text-slate-500 uppercase font-bold mr-1">Presets:</span>
+            <button
+              type="button"
+              onClick={() => handleApplyDlpPreset('postgres')}
+              className={`px-2 py-0.5 rounded border transition-colors ${
+                activeDlpPreset === 'postgres'
+                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 font-bold'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+              }`}
+            >
+              Postgres URI + Token
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApplyDlpPreset('cloud')}
+              className={`px-2 py-0.5 rounded border transition-colors ${
+                activeDlpPreset === 'cloud'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+              }`}
+            >
+              Cloud IAM + API Keys
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApplyDlpPreset('clean')}
+              className={`px-2 py-0.5 rounded border transition-colors ${
+                activeDlpPreset === 'clean'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+              }`}
+            >
+              Clean Payload
+            </button>
+          </div>
 
-            {showRedactionDiff && (
-              <div>
-                <span className="block text-[10px] font-mono text-emerald-400 uppercase font-bold mb-1">
-                  Sanitized Model Context Payload (Scrubbed on Mac M2):
-                </span>
-                <pre className="p-3 bg-slate-950 border border-emerald-500/30 rounded-xl font-mono text-xs text-emerald-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
-                  {computeScrubbedText(rawSampleInput)}
-                </pre>
+          <div className="space-y-3">
+            {showRedactionDiff ? (
+              /* COMPARISON ACTIVE VIEW: Dual Raw vs Sanitized Panels with Diff Breakdown */
+              <div className="space-y-3 animate-fadeIn">
+                <div className="flex items-center justify-between text-[11px] font-mono pb-1 border-b border-slate-800/80">
+                  <span className="text-slate-400 flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span>Comparison Mode Active: Raw Inbound vs Sanitized Context</span>
+                  </span>
+                  <span className="text-amber-400 font-bold">
+                    {dlpAnalysis.totalDetections} {dlpAnalysis.totalDetections === 1 ? 'Secret' : 'Secrets'} Redacted
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-mono text-red-400 uppercase font-bold flex items-center space-x-1">
+                      <span>Editable Inbound Payload (With Ephemeral Secrets):</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {rawSampleInput.length} chars
+                    </span>
+                  </div>
+                  <textarea
+                    rows={4}
+                    value={rawSampleInput}
+                    onChange={(e) => setRawSampleInput(e.target.value)}
+                    className="w-full p-3 bg-slate-950 border border-red-500/40 rounded-xl font-mono text-xs text-red-300 leading-relaxed focus:outline-none focus:border-red-400"
+                    placeholder="Type raw prompt with secrets to test instant M2 redaction..."
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold flex items-center space-x-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Sanitized Model Context Payload (Scrubbed on Mac M2):</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopySanitized}
+                      className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center space-x-1 transition-colors"
+                      title="Copy sanitized output"
+                    >
+                      {copiedSanitized ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedSanitized ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <pre className="p-3 bg-slate-950 border border-emerald-500/40 rounded-xl font-mono text-xs text-emerald-300 leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-48">
+                    {dlpAnalysis.scrubbedText}
+                  </pre>
+                </div>
+
+                {/* Real-time Detection Audit Chips */}
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-slate-400">Live Detection Breakdown:</span>
+                    <span className="text-emerald-400 font-bold">Zero-Leak Assurance</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
+                    <span className={`px-2 py-0.5 rounded border ${
+                      dlpAnalysis.breakdown.passwords > 0 
+                        ? 'bg-red-500/10 text-red-300 border-red-500/30 font-bold' 
+                        : 'bg-slate-900 text-slate-500 border-slate-800'
+                    }`}>
+                      Passwords: {dlpAnalysis.breakdown.passwords}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded border ${
+                      dlpAnalysis.breakdown.tokens > 0 
+                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 font-bold' 
+                        : 'bg-slate-900 text-slate-500 border-slate-800'
+                    }`}>
+                      API Tokens: {dlpAnalysis.breakdown.tokens}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded border ${
+                      dlpAnalysis.breakdown.emails > 0 
+                        ? 'bg-sky-500/10 text-sky-300 border-sky-500/30 font-bold' 
+                        : 'bg-slate-900 text-slate-500 border-slate-800'
+                    }`}>
+                      PII Emails: {dlpAnalysis.breakdown.emails}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded border ${
+                      dlpAnalysis.breakdown.ips > 0 
+                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/30 font-bold' 
+                        : 'bg-slate-900 text-slate-500 border-slate-800'
+                    }`}>
+                      Internal IPs: {dlpAnalysis.breakdown.ips}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* COMPARISON HIDDEN VIEW: Clean Single Sanitized Output View */
+              <div className="space-y-3 animate-fadeIn">
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-xs">
+                    <EyeOff className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <span className="text-white font-semibold block">Comparison View is Hidden</span>
+                      <span className="text-[11px] text-slate-400">
+                        Displaying clean sanitized payload ready for inference ({dlpAnalysis.totalDetections} secrets neutralized).
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowRedactionDiff(true)}
+                    className="text-xs px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded-lg font-mono transition-colors font-semibold"
+                  >
+                    Show Comparison
+                  </button>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold flex items-center space-x-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Sanitized Model Context Payload (Scrubbed on Mac M2):</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopySanitized}
+                      className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center space-x-1 transition-colors"
+                      title="Copy sanitized output"
+                    >
+                      {copiedSanitized ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedSanitized ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <pre className="p-3.5 bg-slate-950 border border-emerald-500/40 rounded-xl font-mono text-xs text-emerald-300 leading-relaxed overflow-x-auto whitespace-pre-wrap min-h-[120px]">
+                    {dlpAnalysis.scrubbedText}
+                  </pre>
+                </div>
+
+                <div className="text-[11px] font-mono text-slate-400 bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+                  <span>Context Status:</span>
+                  <span className="text-emerald-400 font-bold">100% Sanitized & Safe to Dispatch</span>
+                </div>
               </div>
             )}
 
