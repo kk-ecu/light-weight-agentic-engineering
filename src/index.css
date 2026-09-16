@@ -1,1 +1,396 @@
 @import "tailwindcss";
+
+/* 
+ * 3-Theme Enterprise Architecture:
+ * 1. Cyber Dark (Default Slate-950 with Amber Accents)
+ * 2. Executive Light (High-Contrast Daylight Clean with Deep Ochre/Burnt-Amber Accents)
+ * 3. Amadeus.com Official Blue (Midnight Deep Navy #00112c & Science Blue #0C66E1)
+ */
+
+:root {
+  --theme-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   1. LIGHT THEME: Executive Clean with High-Contrast WCAG AAA Legibility
+   ========================================================================== */
+[data-theme="light"] {
+  --color-slate-950: #f8fafc;
+  --color-slate-900: #ffffff;
+  --color-slate-800: #e2e8f0;
+  --color-slate-700: #cbd5e1;
+  --color-slate-600: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-400: #334155; /* High contrast charcoal */
+  --color-slate-300: #1e293b;
+  --color-slate-200: #0f172a;
+  --color-slate-100: #020617;
+  --color-white: #0f172a;
+  color-scheme: light;
+}
+
+[data-theme="light"] .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="light"] .bg-slate-900 {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .bg-slate-900\/90 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-theme="light"] .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-theme="light"] .bg-slate-900\/50 {
+  background-color: rgba(241, 245, 249, 0.85) !important;
+}
+
+[data-theme="light"] .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+[data-theme="light"] .bg-slate-800\/80 {
+  background-color: rgba(241, 245, 249, 0.92) !important;
+}
+
+[data-theme="light"] .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Base text contrast */
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate-300 {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .text-slate-400 {
+  color: #334155 !important; /* Deep readable slate (WCAG AA pass on white) */
+}
+
+[data-theme="light"] .text-slate-500 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+/* 
+ * CRITICAL CONTRAST FIX: Orange / Amber in Light Mode
+ * Invert washed-out light amber (#fcd34d, #fbbf24) into rich, crisp burnt ochre (#92400e / #b45309)
+ */
+[data-theme="light"] .text-amber-400,
+[data-theme="light"] .text-amber-300,
+[data-theme="light"] .text-amber-500,
+[data-theme="light"] .text-amber-200,
+[data-theme="light"] .text-orange-400,
+[data-theme="light"] .text-orange-300,
+[data-theme="light"] .text-yellow-400,
+[data-theme="light"] .text-yellow-300 {
+  color: #92400e !important; /* Amber-800: 7.2:1 contrast ratio against white! */
+  font-weight: 600;
+}
+
+/* Light badge pills with high-contrast text & borders */
+[data-theme="light"] .bg-amber-500\/20,
+[data-theme="light"] .bg-amber-500\/10,
+[data-theme="light"] .bg-amber-500\/30 {
+  background-color: #fef3c7 !important; /* amber-100 */
+}
+
+[data-theme="light"] .border-amber-500\/40,
+[data-theme="light"] .border-amber-500\/30,
+[data-theme="light"] .border-amber-500\/20 {
+  border-color: #f59e0b !important; /* amber-500 */
+}
+
+/* Contrast enhancement for emerald, cyan, indigo, purple in light mode */
+[data-theme="light"] .text-emerald-400,
+[data-theme="light"] .text-emerald-300,
+[data-theme="light"] .text-emerald-200 {
+  color: #047857 !important; /* emerald-700 */
+  font-weight: 600;
+}
+
+[data-theme="light"] .bg-emerald-500\/20,
+[data-theme="light"] .bg-emerald-500\/10 {
+  background-color: #d1fae5 !important;
+}
+
+[data-theme="light"] .border-emerald-500\/40,
+[data-theme="light"] .border-emerald-500\/30 {
+  border-color: #34d399 !important;
+}
+
+[data-theme="light"] .text-cyan-400,
+[data-theme="light"] .text-cyan-300 {
+  color: #0e7490 !important; /* cyan-700 */
+  font-weight: 600;
+}
+
+[data-theme="light"] .text-indigo-400,
+[data-theme="light"] .text-indigo-300 {
+  color: #4338ca !important; /* indigo-700 */
+  font-weight: 600;
+}
+
+[data-theme="light"] .bg-indigo-500\/20,
+[data-theme="light"] .bg-indigo-500\/10 {
+  background-color: #e0e7ff !important;
+}
+
+[data-theme="light"] .border-indigo-500\/30 {
+  border-color: #818cf8 !important;
+}
+
+[data-theme="light"] .text-purple-400,
+[data-theme="light"] .text-purple-300 {
+  color: #6b21a8 !important; /* purple-800 */
+  font-weight: 600;
+}
+
+[data-theme="light"] .text-blue-400,
+[data-theme="light"] .text-blue-300 {
+  color: #1d4ed8 !important; /* blue-700 */
+  font-weight: 600;
+}
+
+/* Active solid button states in light mode */
+[data-theme="light"] .bg-amber-500 {
+  background-color: #b45309 !important; /* solid deep amber */
+  color: #ffffff !important;
+}
+
+[data-theme="light"] button.bg-amber-500,
+[data-theme="light"] button.bg-amber-500 * {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] button.bg-amber-500 svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Form inputs in light mode */
+[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Maintain light text inside high-contrast filled buttons in light mode */
+[data-theme="light"] .bg-indigo-600 .text-white,
+[data-theme="light"] .bg-emerald-600 .text-white,
+[data-theme="light"] .bg-blue-600 .text-white,
+[data-theme="light"] .bg-purple-600 .text-white,
+[data-theme="light"] button.bg-indigo-600,
+[data-theme="light"] button.bg-emerald-600,
+[data-theme="light"] button.bg-blue-600,
+[data-theme="light"] button.bg-blue-600 *,
+[data-theme="light"] button.bg-indigo-600 *,
+[data-theme="light"] .force-white {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .hover\:text-amber-400:hover,
+[data-theme="light"] .hover\:text-amber-300:hover,
+[data-theme="light"] .hover\:text-amber-500:hover,
+[data-theme="light"] .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="lightblue"] .hover\:text-amber-400:hover,
+[data-theme="lightblue"] .hover\:text-amber-300:hover,
+[data-theme="lightblue"] .hover\:text-white:hover {
+  color: #1e3a8a !important;
+}
+
+
+/* ==========================================================================
+   2. PROFESSIONAL LIGHT BLUE THEME: Crisp Enterprise Daylight with Airy Blue Canvas
+   Airy ice-blue canvas #f0f6ff, pure white elevated cards, deep navy typography #0f2347,
+   and executive sapphire blue #1d4ed8 accents
+   ========================================================================== */
+[data-theme="lightblue"] {
+  --color-slate-950: #f0f6ff; /* Airy Ice Blue Canvas */
+  --color-slate-900: #ffffff; /* Crisp White Cards */
+  --color-slate-850: #e8f2ff; /* Elevated Ice Surface */
+  --color-slate-800: #dbeafe; /* Subtle Blue-Tinted Border */
+  --color-slate-700: #bfdbfe; /* Stronger Divider */
+  --color-slate-600: #93c5fd;
+  --color-slate-500: #3b82f6;
+  --color-slate-400: #1e40af; /* High-contrast Navy Blue (WCAG AAA) */
+  --color-slate-300: #1e3a8a;
+  --color-slate-200: #172554;
+  --color-slate-100: #0f2347; /* Primary Deep Navy Heading */
+  --color-white: #0f2347;
+  --color-amber-500: #1d4ed8; /* Professional Executive Blue */
+  --color-amber-400: #2563eb;
+  --color-amber-300: #3b82f6;
+  color-scheme: light;
+}
+
+[data-theme="lightblue"] .bg-slate-950 {
+  background-color: #f0f6ff !important; /* Soft ice-blue backdrop */
+}
+
+[data-theme="lightblue"] .bg-slate-900 {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 4px 0 rgba(30, 64, 175, 0.08), 0 1px 2px -1px rgba(30, 64, 175, 0.04) !important;
+}
+
+[data-theme="lightblue"] .bg-slate-900\/90 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-theme="lightblue"] .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-theme="lightblue"] .bg-slate-900\/50 {
+  background-color: rgba(232, 242, 255, 0.85) !important;
+}
+
+[data-theme="lightblue"] .bg-slate-800 {
+  background-color: #e8f2ff !important; /* Ice blue surface */
+}
+
+[data-theme="lightblue"] .bg-slate-800\/80 {
+  background-color: rgba(232, 242, 255, 0.92) !important;
+}
+
+[data-theme="lightblue"] .border-slate-800 {
+  border-color: #bfdbfe !important; /* Crisp blue-slate divider */
+}
+
+[data-theme="lightblue"] .border-slate-700 {
+  border-color: #93c5fd !important;
+}
+
+/* Deep Navy Typography for maximum contrast and readability */
+[data-theme="lightblue"] .text-slate-100,
+[data-theme="lightblue"] .text-slate-200 {
+  color: #0f2347 !important;
+}
+
+[data-theme="lightblue"] .text-slate-300 {
+  color: #1e3a8a !important;
+}
+
+[data-theme="lightblue"] .text-slate-400 {
+  color: #1e40af !important; /* Bold readable corporate navy */
+}
+
+[data-theme="lightblue"] .text-slate-500 {
+  color: #3b82f6 !important;
+}
+
+[data-theme="lightblue"] .text-white {
+  color: #0f2347 !important;
+}
+
+/* Status text contrast in light blue mode */
+[data-theme="lightblue"] .text-amber-400,
+[data-theme="lightblue"] .text-amber-300,
+[data-theme="lightblue"] .text-orange-400 {
+  color: #9a3412 !important; /* Deep warm ochre, 7.5:1 contrast against light blue */
+  font-weight: 600;
+}
+
+[data-theme="lightblue"] .text-emerald-400,
+[data-theme="lightblue"] .text-emerald-300 {
+  color: #047857 !important;
+  font-weight: 600;
+}
+
+[data-theme="lightblue"] .text-cyan-400,
+[data-theme="lightblue"] .text-cyan-300 {
+  color: #0369a1 !important;
+  font-weight: 600;
+}
+
+[data-theme="lightblue"] .text-indigo-400,
+[data-theme="lightblue"] .text-indigo-300 {
+  color: #3730a3 !important;
+  font-weight: 600;
+}
+
+/* Badges & Pills */
+[data-theme="lightblue"] .bg-amber-500\/20,
+[data-theme="lightblue"] .bg-amber-500\/10 {
+  background-color: #dbeafe !important;
+}
+
+[data-theme="lightblue"] .border-amber-500\/30,
+[data-theme="lightblue"] .border-amber-500\/40 {
+  border-color: #3b82f6 !important;
+}
+
+/* Primary Active Buttons in Light Blue Theme */
+[data-theme="lightblue"] .bg-amber-500 {
+  background-color: #1d4ed8 !important; /* Executive Blue */
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25) !important;
+}
+
+[data-theme="lightblue"] button.bg-amber-500,
+[data-theme="lightblue"] button.bg-amber-500 * {
+  color: #ffffff !important;
+}
+
+[data-theme="lightblue"] button.bg-amber-500 svg {
+  stroke: #ffffff !important;
+}
+
+[data-theme="lightblue"] .ring-amber-400 {
+  --tw-ring-color: #1d4ed8 !important;
+}
+
+/* Inputs in Light Blue Theme */
+[data-theme="lightblue"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="lightblue"] select,
+[data-theme="lightblue"] textarea {
+  background-color: #ffffff !important;
+  color: #0f2347 !important;
+  border-color: #bfdbfe !important;
+}
+
+[data-theme="lightblue"] input::placeholder,
+[data-theme="lightblue"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Maintain light text inside high-contrast filled buttons */
+[data-theme="lightblue"] .bg-indigo-600 .text-white,
+[data-theme="lightblue"] .bg-emerald-600 .text-white,
+[data-theme="lightblue"] .bg-blue-600 .text-white,
+[data-theme="lightblue"] button.bg-indigo-600,
+[data-theme="lightblue"] button.bg-emerald-600,
+[data-theme="lightblue"] button.bg-blue-600,
+[data-theme="lightblue"] button.bg-blue-600 *,
+[data-theme="lightblue"] button.bg-indigo-600 *,
+[data-theme="lightblue"] .force-white {
+  color: #ffffff !important;
+}
+

@@ -13,6 +13,8 @@ export type ActiveTab =
   | 'test-suite'
   | 'enterprise-review';
 
+export type ThemeMode = 'dark' | 'light' | 'lightblue';
+
 export interface AgentDefinition {
   id: string;
   name: string;

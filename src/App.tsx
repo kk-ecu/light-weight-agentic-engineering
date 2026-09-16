@@ -4,8 +4,8 @@
  * Scalable architecture running on Local Ollama (Mac M2) with LangGraph, Temporal, pgvector, and MCP.
  */
 
-import React, { useState } from 'react';
-import { ActiveTab } from './types';
+import React, { useState, useEffect } from 'react';
+import { ActiveTab, ThemeMode } from './types';
 import { Navigation } from './components/Navigation';
 import { WebsiteView } from './components/WebsiteView';
 import { AgentGatewayView } from './components/AgentGatewayView';
@@ -22,14 +22,40 @@ import { EnterpriseReviewView } from './components/EnterpriseReviewView';
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('local-m2-runner');
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(1);
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('agentic-theme');
+    if (saved === 'dark' || saved === 'light' || saved === 'lightblue') {
+      return saved;
+    }
+    if (saved === 'amadeus' || saved === 'matrix') {
+      return 'lightblue';
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('agentic-theme', theme);
+  }, [theme]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div 
+      data-theme={theme}
+      className={`min-h-screen ${
+        theme === 'lightblue'
+          ? 'bg-[#f0f6ff] text-[#0f2347]'
+          : theme === 'light' 
+          ? 'bg-slate-50 text-slate-900' 
+          : 'bg-slate-950 text-slate-100'
+      } flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200`}
+    >
       {/* Platform Navigation Header */}
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         pendingApprovalsCount={pendingApprovalsCount}
+        theme={theme}
+        setTheme={setTheme}
       />
 
       {/* Main Content Area */}

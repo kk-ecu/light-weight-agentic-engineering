@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActiveTab } from '../types';
+import { ActiveTab, ThemeMode } from '../types';
 import { 
   Globe, 
   Workflow, 
@@ -12,13 +12,18 @@ import {
   Terminal,
   Layers,
   Activity,
-  Clock
+  Clock,
+  Sun,
+  Moon,
+  Palette
 } from 'lucide-react';
 
 interface NavigationProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   pendingApprovalsCount: number;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
 }
 
 interface NavItem {
@@ -33,7 +38,9 @@ interface NavItem {
 export const Navigation: React.FC<NavigationProps> = ({
   activeTab,
   setActiveTab,
-  pendingApprovalsCount
+  pendingApprovalsCount,
+  theme,
+  setTheme
 }) => {
   const [navFilter, setNavFilter] = useState<'all' | 'runtime' | 'architecture'>('all');
 
@@ -151,6 +158,49 @@ export const Navigation: React.FC<NavigationProps> = ({
                 }`}
               >
                 <span>🏛️ System (6)</span>
+              </button>
+            </div>
+
+            {/* 3-Theme Switcher Toggle */}
+            <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]" title="Change Platform Theme">
+              <button
+                id="theme-btn-dark"
+                onClick={() => setTheme('dark')}
+                className={`px-2 py-1 rounded font-medium transition-all flex items-center space-x-1 ${
+                  theme === 'dark' 
+                    ? 'bg-slate-800 text-amber-400 font-semibold shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Cyber Dark (Slate & Amber)"
+              >
+                <Moon className="w-3 h-3 text-amber-400" />
+                <span className="hidden sm:inline">Dark</span>
+              </button>
+              <button
+                id="theme-btn-light"
+                onClick={() => setTheme('light')}
+                className={`px-2 py-1 rounded font-medium transition-all flex items-center space-x-1 ${
+                  theme === 'light' 
+                    ? 'bg-amber-100 text-amber-900 border border-amber-400 font-bold shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Executive Light (Daylight Clean with WCAG AAA High Contrast)"
+              >
+                <Sun className="w-3 h-3 text-amber-700" />
+                <span className="hidden sm:inline">Light</span>
+              </button>
+              <button
+                id="theme-btn-lightblue"
+                onClick={() => setTheme('lightblue')}
+                className={`px-2 py-1 rounded font-medium transition-all flex items-center space-x-1 ${
+                  theme === 'lightblue' 
+                    ? 'bg-blue-600 text-white font-bold shadow-sm shadow-blue-500/30 ring-1 ring-blue-400' 
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Professional Light Blue (Airy Sky Canvas with Deep Navy Contrast)"
+              >
+                <Palette className={`w-3 h-3 ${theme === 'lightblue' ? 'text-white' : 'text-blue-400'}`} />
+                <span className="hidden sm:inline">Light Blue</span>
               </button>
             </div>
 
