@@ -67,14 +67,14 @@ flowchart TD
         Proxy["Express Gateway & API Aggregator\nReverse Proxy to Microservices"]
     end
 
-    subgraph P2["Plane 2: Agent Control Plane (:8001, :8002)"]
-        AgentGW["Agent Gateway (FastAPI :8001)\nLangGraph 0.2 Cyclical Graph Engine"]
+    subgraph P2["Plane 2: Agent Control Plane (:8000, :8002)"]
+        AgentGW["Agent Gateway (FastAPI :8000)\nLangGraph 0.2 Cyclical Graph Engine"]
         LLMGW["LLM Gateway (FastAPI :8002)\nDLP Prompt Filter & Metal Proxy"]
         OllamaEngine["Ollama Server (:11434)\nApple Silicon Metal Shaders @ 48.2 tok/s"]
     end
 
-    subgraph P3["Plane 3: Tool Integration Plane (:8003)"]
-        MCPGateway["MCP Tool Gateway (:8003)\nZero-Trust Action Class Broker"]
+    subgraph P3["Plane 3: Tool Integration Plane (:8080)"]
+        MCPGateway["MCP Tool Gateway (:8080)\nZero-Trust Action Class Broker"]
         Sandbox["GitHub Isolated Subprocess Sandbox\nPyGithub / Ephemeral Scoped Token"]
     end
 

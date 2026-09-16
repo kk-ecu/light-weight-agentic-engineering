@@ -48,7 +48,7 @@ export const AGENTS_CATALOG: AgentDefinition[] = [
     allowedTools: ['ci_fetch_logs', 'git_read', 'jira_update', 'knowledge_search'],
     riskClass: 'read_only',
     modelPreference: 'mistral:7b',
-    langGraphNodes: ['AnalyzeDiff', 'DeriveTestScenarios', 'GeneratePytestSuite', 'ReportCoverage']
+    langGraphNodes: ['AnalyzeDiff', 'DeriveTestScenarios', 'GeneratePytestSuite', 'EvaluateBoundaryFuzz', 'ReportCoverageGate']
   },
   {
     id: 'agent-release',
@@ -72,7 +72,7 @@ export const AGENTS_CATALOG: AgentDefinition[] = [
     allowedTools: ['observability_query', 'runbook_read', 'jira_create'],
     riskClass: 'read_only',
     modelPreference: 'mistral:7b',
-    langGraphNodes: ['IngestAlertContext', 'QueryPrometheusMetrics', 'MatchRunbookKnowledge', 'FormulateHypothesis']
+    langGraphNodes: ['IngestAlertContext', 'QueryPrometheusMetrics', 'MatchRunbookKnowledge', 'FormulateHypothesis', 'EmitRemediationRunbook']
   }
 ];
 

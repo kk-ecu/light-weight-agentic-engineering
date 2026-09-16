@@ -28,6 +28,8 @@ export const AgentGatewayView: React.FC = () => {
   const [inputTask, setInputTask] = useState('Implement idempotency key Redis decorator for payment endpoint (JIRA GENT-4412)');
   const [isRunning, setIsRunning] = useState(false);
   const [currentExecutingNode, setCurrentExecutingNode] = useState<string | null>(null);
+  const [currentExecutingDomainIndex, setCurrentExecutingDomainIndex] = useState<number | null>(null);
+  const [selectedDomainNodeIndex, setSelectedDomainNodeIndex] = useState<number | null>(0);
   const [simulateSelfHealingLoop, setSimulateSelfHealingLoop] = useState(true);
   const [cycleAttempt, setCycleAttempt] = useState(1);
   const [activeGraphView, setActiveGraphView] = useState<'canonical' | 'domain-specific'>('canonical');
@@ -127,51 +129,58 @@ export const AgentGatewayView: React.FC = () => {
     addLog(`Initiating LangGraph execution for: ${selectedAgent.name}`);
     addLog(`Target task prompt: "${inputTask}"`);
     setCurrentExecutingNode('validate_intent');
+    setCurrentExecutingDomainIndex(0);
 
-    // Stage 1: Validate Intent
+    // Stage 1: Validate Intent / Step 1
     setTimeout(() => {
-      addLog(`Node 1 (validate_intent): Querying MCP Policy Hook... Policy verdict: 'ALLOW (${selectedAgent.riskClass})'.`);
+      addLog(`Node 1 (${canonicalLangGraphNodes[0].id} / ${selectedAgent.langGraphNodes[0]}): Querying MCP Policy Hook... Policy verdict: 'ALLOW (${selectedAgent.riskClass})'.`);
       setStateSnapshot((prev: any) => ({ ...prev, status: "VALIDATING_POLICY", policy_verdict: `allow (${selectedAgent.riskClass})` }));
       setCurrentExecutingNode('retrieve_knowledge');
+      setCurrentExecutingDomainIndex(1);
 
-      // Stage 2: Retrieve Knowledge
+      // Stage 2: Retrieve Knowledge / Step 2
       setTimeout(() => {
-        addLog("Node 2 (retrieve_knowledge): 3 relevant ADR chunks retrieved from pgvector (Similarity: 0.92, 0.89).");
+        addLog(`Node 2 (${canonicalLangGraphNodes[1].id} / ${selectedAgent.langGraphNodes[1]}): 3 relevant ADR chunks retrieved from pgvector (Similarity: 0.92, 0.89).`);
         setStateSnapshot((prev: any) => ({ ...prev, status: "RETRIEVING_DOCS", retrieved_chunks: 3 }));
         setCurrentExecutingNode('llm_synthesis');
+        setCurrentExecutingDomainIndex(2);
 
-        // Stage 3: LLM Synthesis (Attempt 1)
+        // Stage 3: LLM Synthesis / Step 3 (Attempt 1)
         setTimeout(() => {
-          addLog(`Node 3 (llm_synthesis - Cycle #1): Executing on ${selectedAgent.modelPreference} via Apple Silicon Metal GPU.`);
+          addLog(`Node 3 (${canonicalLangGraphNodes[2].id} / ${selectedAgent.langGraphNodes[2]} - Cycle #1): Executing on ${selectedAgent.modelPreference} via Apple Silicon Metal GPU.`);
           addLog("Inference generated 284 tokens in 82ms ($0.00 cost).");
           setStateSnapshot((prev: any) => ({ ...prev, status: "SYNTHESIZING", active_model: selectedAgent.modelPreference, cycle_count: 1 }));
           setCurrentExecutingNode('eval_gate');
+          setCurrentExecutingDomainIndex(3);
 
-          // Stage 4: Eval Gate
+          // Stage 4: Eval Gate / Step 4
           setTimeout(() => {
             if (simulateSelfHealingLoop) {
               // Simulate a test defect detected by EvalGate that triggers the cyclic loop!
-              addLog("Node 4 (eval_gate - Cycle #1): Test runner executed 6 tests: 5 Passed, 1 Failed (Redis connection timeout assertion).");
-              addLog("↺ [CYCLIC EDGE TRIGGERED]: Code defect detected. LangGraph re-routes traceback back to Node 3 (llm_synthesis) for self-correction!");
+              addLog(`Node 4 (${canonicalLangGraphNodes[3].id} / ${selectedAgent.langGraphNodes[3]} - Cycle #1): Test runner executed 6 tests: 5 Passed, 1 Failed (Redis connection timeout assertion).`);
+              addLog("↺ [CYCLIC EDGE TRIGGERED]: Code defect detected in Node 4. LangGraph re-routes traceback back to Node 3 for automated self-correction!");
               setCycleAttempt(2);
               setCurrentExecutingNode('llm_synthesis');
+              setCurrentExecutingDomainIndex(2);
 
               // Stage 3 Re-run (Attempt 2 with self-correction)
               setTimeout(() => {
-                addLog("Node 3 (llm_synthesis - Cycle #2 / Self-Healing): Ingested pytest failure traceback. Added connection retry backoff decorator.");
+                addLog(`Node 3 (${canonicalLangGraphNodes[2].id} / ${selectedAgent.langGraphNodes[2]} - Cycle #2 / Self-Healing): Ingested pytest failure traceback. Added connection retry backoff decorator.`);
                 addLog("Re-synthesis completed in 79ms. Model patched Redis socket timeout handling.");
                 setStateSnapshot((prev: any) => ({ ...prev, status: "SELF_HEALED", cycle_count: 2 }));
                 setCurrentExecutingNode('eval_gate');
+                setCurrentExecutingDomainIndex(3);
 
                 // Stage 4 Re-evaluation
                 setTimeout(() => {
-                  addLog("Node 4 (eval_gate - Cycle #2): Re-ran pytest suite: 6 of 6 tests PASSED (100% coverage). Groundedness score 0.98. Passing gate.");
+                  addLog(`Node 4 (${canonicalLangGraphNodes[3].id} / ${selectedAgent.langGraphNodes[3]} - Cycle #2): Re-ran pytest suite: 6 of 6 tests PASSED (100% coverage). Groundedness score 0.98. Passing gate.`);
                   setCurrentExecutingNode('tool_dispatch');
+                  setCurrentExecutingDomainIndex(4);
 
                   // Stage 5: Tool Dispatch
                   setTimeout(() => {
                     const primaryTool = selectedAgent.allowedTools[selectedAgent.allowedTools.length - 1];
-                    addLog(`Node 5 (tool_dispatch): Invoking authorized MCP tool '${primaryTool}' via Zero-Trust MCP Gateway.`);
+                    addLog(`Node 5 (${canonicalLangGraphNodes[4].id} / ${selectedAgent.langGraphNodes[4]}): Invoking authorized MCP tool '${primaryTool}' via Zero-Trust MCP Gateway.`);
                     addLog("Draft Pull Request created: https://github.com/enterprise/core/pull/128");
                     addLog("LangGraph StateGraph reached END checkpoint. State saved to PostgreSQL.");
                     setStateSnapshot((prev: any) => ({
@@ -181,22 +190,25 @@ export const AgentGatewayView: React.FC = () => {
                       outcome: "Self-corrected patch with 6/6 tests passing."
                     }));
                     setCurrentExecutingNode(null);
+                    setCurrentExecutingDomainIndex(null);
                     setIsRunning(false);
-                  }, 600);
+                  }, 650);
                 }, 600);
               }, 750);
             } else {
               // Direct pass without simulated failure
-              addLog("Node 4 (eval_gate): All tests passed. Groundedness score: 0.99. No secrets leaked.");
+              addLog(`Node 4 (${canonicalLangGraphNodes[3].id} / ${selectedAgent.langGraphNodes[3]}): All checks passed. Groundedness score: 0.99. No secrets leaked.`);
               setCurrentExecutingNode('tool_dispatch');
+              setCurrentExecutingDomainIndex(4);
 
               setTimeout(() => {
-                addLog(`Node 5 (tool_dispatch): Invoking MCP tool '${selectedAgent.allowedTools[0]}'.`);
+                addLog(`Node 5 (${canonicalLangGraphNodes[4].id} / ${selectedAgent.langGraphNodes[4]}): Invoking MCP tool '${selectedAgent.allowedTools[0]}'.`);
                 addLog("LangGraph StateGraph reached END checkpoint.");
                 setStateSnapshot((prev: any) => ({ ...prev, status: "COMPLETED" }));
                 setCurrentExecutingNode(null);
+                setCurrentExecutingDomainIndex(null);
                 setIsRunning(false);
-              }, 600);
+              }, 650);
             }
           }, 600);
         }, 700);
@@ -449,44 +461,107 @@ export const AgentGatewayView: React.FC = () => {
                 })}
               </div>
 
-              {/* Cyclic Edge Callout */}
-              <div className="mt-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between text-xs text-amber-200">
-                <div className="flex items-center space-x-2">
-                  <RotateCcw className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>
-                    <strong>Cyclic Self-Healing Edge (Node 4 ➔ Node 3):</strong> If automated tests fail in Node 4, LangGraph intercepts the test traceback and cyclically re-invokes Node 3 with the fix instructions before Node 5 is ever reached.
-                  </span>
+              {/* Cyclic Edge Callout with High-Contrast Colors */}
+              <div className="mt-4 bg-slate-950 border-2 border-amber-500/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-lg shadow-black/40">
+                <div className="flex items-start space-x-3">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 shrink-0 mt-0.5 border border-amber-500/40">
+                    <RotateCcw className="w-4 h-4 animate-spin-reverse" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-amber-300 text-xs tracking-wide block">
+                      Cyclic Self-Healing Edge (Node 4 ➔ Node 3):
+                    </span>
+                    <p className="text-slate-200 text-[11px] leading-relaxed">
+                      If automated tests fail in Node 4, LangGraph intercepts the test traceback and cyclically re-invokes Node 3 with the fix instructions before Node 5 is ever reached.
+                    </p>
+                  </div>
                 </div>
-                <label className="flex items-center space-x-2 cursor-pointer shrink-0 ml-4">
+                <label className="flex items-center space-x-2.5 cursor-pointer shrink-0 bg-slate-900 hover:bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 transition-colors">
                   <input
                     type="checkbox"
                     checked={simulateSelfHealingLoop}
                     onChange={(e) => setSimulateSelfHealingLoop(e.target.checked)}
-                    className="accent-amber-500 w-3.5 h-3.5"
+                    className="accent-amber-500 w-4 h-4 cursor-pointer"
                   />
-                  <span className="text-[11px] text-slate-300">Simulate Test Defect & Loop</span>
+                  <span className="text-xs font-semibold text-white">Simulate Test Defect & Loop</span>
                 </label>
               </div>
             </div>
           ) : (
-            <div>
+            <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-                {selectedAgent.langGraphNodes.map((nodeName, idx) => (
-                  <div 
-                    key={nodeName}
-                    className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col justify-between min-h-[120px]"
-                  >
-                    <div>
-                      <span className="text-[10px] font-mono text-amber-400">Step {idx + 1} of {selectedAgent.langGraphNodes.length}</span>
-                      <h4 className="text-sm font-bold text-white mt-1">{nodeName}</h4>
-                      <p className="text-[11px] text-slate-400 mt-1">Domain-specific handler for {selectedAgent.name}.</p>
+                {selectedAgent.langGraphNodes.map((nodeName, idx) => {
+                  const isCurrent = currentExecutingDomainIndex === idx;
+                  const isSelected = selectedDomainNodeIndex === idx;
+
+                  return (
+                    <div 
+                      key={nodeName}
+                      onClick={() => setSelectedDomainNodeIndex(idx)}
+                      className={`cursor-pointer p-4 rounded-xl border transition-all flex flex-col justify-between min-h-[140px] relative ${
+                        isCurrent
+                          ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-500/50 shadow-lg shadow-amber-500/20 animate-pulse'
+                          : isSelected
+                          ? 'bg-slate-900 border-amber-500/80 ring-1 ring-amber-500/40'
+                          : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-[10px] font-mono font-bold ${isCurrent ? 'text-amber-300' : 'text-amber-400'}`}>
+                            Step {idx + 1} of {selectedAgent.langGraphNodes.length}
+                          </span>
+                          {isCurrent && (
+                            <span className="text-[9px] font-mono bg-amber-500 text-slate-950 font-bold px-1.5 py-0.5 rounded animate-pulse">
+                              ACTIVE
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-bold text-white mt-0.5 leading-snug">{nodeName}</h4>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                          {idx === 0 && "Inbound task parsing, schema validation, and tenant scoping."}
+                          {idx === 1 && "Context query against pgvector with cosine similarity distance."}
+                          {idx === 2 && `LLM synthesis using ${selectedAgent.modelPreference} on Apple Metal GPU.`}
+                          {idx === 3 && "Automated test harness, schema linting, & cyclically enforced gates."}
+                          {idx === 4 && "Zero-trust tool dispatch via MCP Gateway on port 8080."}
+                        </p>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono border-t border-slate-900 pt-2 mt-2 flex items-center justify-between">
+                        <span>Checkpointed</span>
+                        <span className="text-emerald-400 font-bold">StateGraph</span>
+                      </div>
                     </div>
-                    <div className="text-[9px] text-slate-500 font-mono border-t border-slate-900 pt-2 mt-2">
-                      Checkpointed in Postgres
+                  );
+                })}
+              </div>
+
+              {/* Domain Node Inspector Detail Card */}
+              {selectedDomainNodeIndex !== null && selectedAgent.langGraphNodes[selectedDomainNodeIndex] && (
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center font-bold text-amber-300 font-mono text-xs">
+                      #{selectedDomainNodeIndex + 1}
+                    </div>
+                    <div>
+                      <span className="text-slate-400 font-mono text-[10px] uppercase block">Selected Domain State Node:</span>
+                      <h4 className="font-bold text-white text-sm">
+                        {selectedAgent.langGraphNodes[selectedDomainNodeIndex]}
+                        <span className="text-slate-400 text-xs font-normal ml-2 font-mono">
+                          (Handled by {selectedAgent.name})
+                        </span>
+                      </h4>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-300">
+                    <span className="bg-slate-900 px-2.5 py-1 rounded border border-slate-800">
+                      Channel: <strong className="text-amber-400">MemorySaver / pg_checkpoints</strong>
+                    </span>
+                    <span className="bg-slate-900 px-2.5 py-1 rounded border border-slate-800">
+                      Isolation: <strong className="text-emerald-400">Zero-Trust Sandbox</strong>
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

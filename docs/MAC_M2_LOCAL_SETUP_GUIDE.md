@@ -88,13 +88,13 @@ flowchart TD
     end
 
     subgraph P2["Plane 2: Agent Control Plane"]
-        AgentGW["Agent Gateway (:8001)\nLangGraph Cyclic State Machine"]
+        AgentGW["Agent Gateway (:8000)\nLangGraph Cyclic State Machine"]
         LLMGW["LLM Gateway (:8002)\nDLP Prompt Filter & Metal Proxy"]
         OllamaServer["Ollama Server (:11434)\nApple Silicon Metal GPU Inference"]
     end
 
     subgraph P3["Plane 3: Tool Integration Plane"]
-        MCPGW["MCP Tool Gateway (:8003)\nZero-Trust Action Class Validation"]
+        MCPGW["MCP Tool Gateway (:8080)\nZero-Trust Action Class Validation"]
         GitAdapter["GitHub MCP Worker\nIsolated Subprocess Sandbox"]
     end
 

@@ -50,6 +50,28 @@ export const LlmGatewayView: React.FC = () => {
     redactedItems: ["auth-token-scrubbed", "internal-ip-masked"]
   });
 
+  const handleSelectRoute = (route: LLMRouteConfig) => {
+    setSelectedRoute(route);
+
+    // Update suggested prompt based on model capabilities
+    if (route.modelId.includes('coder')) {
+      setPrompt('Write a Python test suite using pytest for the Redis idempotency lock decorator, asserting race condition prevention across 5 concurrent coroutines.');
+      setSystemPrompt('You are the Principal Staff Software Engineer for light-weight-agentic-engineering. Produce production-grade, PEP-8 compliant code with zero mock stubs.');
+    } else if (route.modelId.includes('deepseek-r1')) {
+      setPrompt('Provide a deep chain-of-thought analysis on why the 6 Autonomous Planes are architecturally superior to a monolith for local Mac M2 offline execution.');
+      setSystemPrompt('You are the Chief AI Systems Architect. Think step-by-step through operational boundaries, fault domains, and zero-trust decoupling.');
+    } else if (route.modelId.includes('llama3.2')) {
+      setPrompt('Draft an architectural tradeoff analysis between running pgvector on PostgreSQL vs standalone Qdrant for 50M enterprise vector records.');
+      setSystemPrompt('You are the Enterprise Solutions Architect for light-weight-agentic-engineering. Ground analysis on operational simplicity, ACID durability, and M2 developer parity.');
+    } else if (route.modelId.includes('mistral')) {
+      setPrompt('Generate a comprehensive PR description for PR #128 (Redis idempotency decorator) including testing checklist and SOC2 security verification.');
+      setSystemPrompt('You are the Engineering Governance Officer. Ensure strict compliance documentation and clear semantic commit messages.');
+    } else {
+      setPrompt('Evaluate enterprise LLM routing fallback policies when local Apple Silicon Ollama instance reaches 90% GPU saturation.');
+      setSystemPrompt('You are the Cloud Reliability Architect managing hybrid cloud fallbacks.');
+    }
+  };
+
   const handleGenerate = () => {
     setIsGenerating(true);
 
@@ -57,41 +79,99 @@ export const LlmGatewayView: React.FC = () => {
       let responseText = "";
       if (selectedRoute.modelId.includes("coder")) {
         responseText = `\`\`\`python
-# services/agent-gateway/app/idempotency.py
-from redis.asyncio import Redis
-import functools
+# tests/test_idempotency.py
+import pytest
+import asyncio
+from unittest.mock import AsyncMock
+from services.agent_gateway.app.idempotency import idempotent_request
 
-def idempotent_request(redis_client: Redis, ttl_seconds: int = 60):
-    """Enforces atomic execution using Redis SETNX lock."""
-    def decorator(func):
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            idempotency_key = kwargs.get("idempotency_key")
-            if not idempotency_key:
-                return await func(*args, **kwargs)
-            
-            acquired = await redis_client.set(f"idemp:{idempotency_key}", "LOCKED", ex=ttl_seconds, nx=True)
-            if not acquired:
-                raise ValueError("Duplicate request in-flight.")
-            return await func(*args, **kwargs)
-        return wrapper
-    return decorator
+@pytest.mark.asyncio
+async def test_idempotent_request_blocks_concurrent_execution():
+    """Asserts that duplicate concurrent requests with identical idempotency keys raise ValueError."""
+    mock_redis = AsyncMock()
+    # First call acquires lock (True), second call fails (False)
+    mock_redis.set.side_effect = [True, False]
+
+    executed_count = 0
+
+    @idempotent_request(redis_client=mock_redis, ttl_seconds=30)
+    async def process_payment(idempotency_key: str, amount: float):
+        nonlocal executed_count
+        executed_count += 1
+        await asyncio.sleep(0.01)
+        return {"status": "SUCCESS", "amount": amount}
+
+    # First invocation succeeds
+    res1 = await process_payment(idempotency_key="idemp-key-9921", amount=149.99)
+    assert res1["status"] == "SUCCESS"
+    assert executed_count == 1
+
+    # Concurrent second invocation with same key is rejected by atomic SETNX
+    with pytest.raises(ValueError, match="Duplicate request in-flight"):
+        await process_payment(idempotency_key="idemp-key-9921", amount=149.99)
+
+    assert executed_count == 1
+    assert mock_redis.set.call_count == 2
 \`\`\``;
+      } else if (selectedRoute.modelId.includes("deepseek-r1")) {
+        responseText = `<think>
+1. Analyzing user prompt: 6 Autonomous Planes vs Monolith on Apple Silicon M2.
+2. Plane separation allows each service to scale or restart independently:
+   - Experience Plane (Vite/React) consumes 0 inference memory.
+   - LLM Gateway manages Ollama process lifetimes without crashing Agent Gateway (LangGraph).
+   - Knowledge Plane (pgvector) runs in Docker with fixed 512MB RAM cap.
+3. Fault domain isolation: A transient bug in an MCP tool adapter does not bring down the primary workflow engine.
+4. Parity: Developers run the exact same container manifest on M2 that runs in Kubernetes.
+</think>
+
+### Architectural Justification: 6 Autonomous Decoupled Planes
+
+1. **Hardware Memory Segmentation (Mac M2 16GB / 24GB Unified RAM)**:
+   - By running independent lightweight gateways (FastAPI on ports 8000, 8080, 8002), unified memory is strictly segmented. 
+   - When Ollama loads Qwen 2.5 Coder (7B Q4_K_M ~4.4GB), the remaining 11GB is safely reserved for PostgreSQL (pgvector) and OS buffers.
+
+2. **Zero-Trust Security Boundaries**:
+   - The Agent Gateway (port 8000) does not hold cloud credentials.
+   - The MCP Gateway (port 8080) enforces capability checking and requires Human-in-the-Loop approval for 'deploy' operations.
+
+3. **Autonomous Restartability**:
+   - If a Python script in the Agent Gateway hits an out-of-memory or timeout condition, LangGraph checkpointer recovers state from PostgreSQL without restarting the LLM or Tool gateways.`;
+      } else if (selectedRoute.modelId.includes("mistral")) {
+        responseText = `## Pull Request #128: Implement Redis Idempotency Key Lock Decorator
+
+### Summary of Changes:
+- Added \`idempotent_request\` decorator leveraging atomic Redis \`SETNX\` with configurable 30s TTL.
+- Enforced zero-leak secret scrubbing on all inbound idempotency payload headers.
+- Added 6 unit tests in \`tests/test_idempotency.py\` with 100% boundary test coverage.
+
+### Compliance & Security Verification:
+- **SOC2 Type II**: Meets replay attack prevention requirements (CC6.1).
+- **Zero-Trust MCP Gate**: Passed all automated policy checks with verdict ALLOW.
+- **Test Matrix**: 6/6 tests passing on Apple Silicon M2 local test runner.`;
       } else {
-        responseText = `light-weight-agentic-engineering LLM Gateway generated response via ${selectedRoute.name}.\nPrompt successfully processed with ${redactionEnabled ? 'enterprise secret scrubbing' : 'standard filters'}.\nLocal inference latency: ${selectedRoute.averageLatencyMs}ms. Hardware: Apple Silicon Metal GPU.`;
+        responseText = `### Architectural Tradeoff Analysis: pgvector vs Qdrant
+
+1. **Operational Simplicity & Parity (Mac M2 Local Stack)**:
+   - **pgvector**: High parity with relational schemas. Developers can run \`pgvector/pgvector:pg16\` in local Docker with zero extra cluster footprint. Single ACID backup across entity tables and vector embeddings.
+   - **Qdrant**: Requires separate container daemon and backup lifecycle, introducing cognitive overhead for local M2 developers.
+
+2. **Performance at 50M Records**:
+   - For 50M record scale, HNSW indexing on pgvector requires ~16GB dedicated RAM buffer pool. If memory constrained on developer machines, HNSW with halfvec (fp16) provides 2x memory reduction with 98% recall.
+
+**Recommendation for POC**: Standardize on **PostgreSQL + pgvector** for the POC and Staging, as decided in ADR-007.`;
       }
 
       setCompletionOutput({
         text: responseText,
         model: selectedRoute.modelId,
-        tokensIn: prompt.length / 4,
-        tokensOut: responseText.length / 4,
+        tokensIn: Math.round(prompt.length / 4),
+        tokensOut: Math.round(responseText.length / 4),
         latencyMs: selectedRoute.averageLatencyMs + Math.floor(Math.random() * 15),
         costUsd: selectedRoute.costPer1kInput * (prompt.length / 4000),
         redactedItems: redactionEnabled ? ["client_secret_redacted", "internal_host_sanitized"] : []
       });
       setIsGenerating(false);
-    }, 650);
+    }, 600);
   };
 
   return (
@@ -129,7 +209,7 @@ def idempotent_request(redis_client: Redis, ttl_seconds: int = 60):
             return (
               <div
                 key={route.id}
-                onClick={() => setSelectedRoute(route)}
+                onClick={() => handleSelectRoute(route)}
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${
                   isSelected
                     ? 'bg-slate-900 border-amber-500 ring-1 ring-amber-500 shadow-md shadow-amber-500/10'

@@ -32,23 +32,58 @@ export const McpGatewayView: React.FC = () => {
     setSelectedTool(tool);
     setToolResult(null);
 
-    // Provide pre-populated sample params
-    if (tool.id === 'tool-git-draft-pr') {
+    // Provide tailored pre-populated sample params for each registered adapter
+    if (tool.id === 'tool-git-read') {
+      setToolParams(JSON.stringify({
+        repo: "light-weight-agentic/payment-core",
+        path: "services/agent-gateway/app/idempotency.py",
+        ref: "main"
+      }, null, 2));
+    } else if (tool.id === 'tool-git-draft-pr') {
       setToolParams(JSON.stringify({
         repo: "light-weight-agentic/payment-core",
         branch: "feat/lw-4412-idempotency",
         title: "feat(payment): Redis idempotency lock decorator",
-        body: "Closes JIRA LW-4412. Adds atomic Redis SETNX lock with 30s TTL."
+        body: "Closes JIRA LW-4412. Adds atomic Redis SETNX lock with 30s TTL.",
+        files: ["services/agent-gateway/app/idempotency.py", "tests/test_idempotency.py"]
+      }, null, 2));
+    } else if (tool.id === 'tool-jira-read') {
+      setToolParams(JSON.stringify({
+        issueKey: "LW-4412"
+      }, null, 2));
+    } else if (tool.id === 'tool-ci-status') {
+      setToolParams(JSON.stringify({
+        workflowRunId: "run-984214-pr128"
+      }, null, 2));
+    } else if (tool.id === 'tool-cms-read') {
+      setToolParams(JSON.stringify({
+        contentType: "architecture-adr",
+        slug: "adr-007-pgvector-vs-standalone"
+      }, null, 2));
+    } else if (tool.id === 'tool-cms-draft') {
+      setToolParams(JSON.stringify({
+        entryId: "entry-arch-2026-09",
+        payload: {
+          title: "ADR-007 Update: Apple Silicon M2 Metal GPU Benchmarks",
+          status: "DRAFT_STAGING"
+        }
+      }, null, 2));
+    } else if (tool.id === 'tool-crm-lead') {
+      setToolParams(JSON.stringify({
+        company: "Stripe Enterprise Labs",
+        contactEmail: "arch-lead@stripe.com",
+        requirementSummary: "Evaluating local Mac M2 agentic engineering stack for 250 platform developers."
+      }, null, 2));
+    } else if (tool.id === 'tool-observability') {
+      setToolParams(JSON.stringify({
+        query: "rate(http_requests_total{status=~'5..'}[5m])",
+        timeRange: "last_15m"
       }, null, 2));
     } else if (tool.id === 'tool-deploy-prod') {
       setToolParams(JSON.stringify({
         service: "agentic-web-frontend",
         imageTag: "ghcr.io/light-weight-agentic/web:v1.4.0-m2",
-        releaseNote: "Agentic Web 1.4.0 release to production cluster"
-      }, null, 2));
-    } else if (tool.id === 'tool-jira-read') {
-      setToolParams(JSON.stringify({
-        issueKey: "LW-4412"
+        releaseNote: "Agentic Web 1.4.0 release to production cluster with zero-downtime rolling update"
       }, null, 2));
     } else {
       setToolParams(JSON.stringify({
@@ -73,30 +108,101 @@ export const McpGatewayView: React.FC = () => {
             rationale: "Production cluster modification cannot be executed autonomously by agents.",
             temporalSignalDispatched: true,
             approvalId: "APPR-REL-9921",
-            approverRole: "Release Manager / Platform Architect"
+            approverRole: "Release Manager / Platform Architect",
+            targetService: "agentic-web-frontend",
+            imageTag: "ghcr.io/light-weight-agentic/web:v1.4.0-m2"
           },
-          auditId: "mcp-audit-2026-90412"
+          auditId: `mcp-audit-${Date.now()}`
         });
       } else {
-        // Successful Sandboxed Execution
+        // Dynamic realistic output per tool
+        let toolOutput: any = {};
+        if (selectedTool.id === 'tool-git-read') {
+          toolOutput = {
+            repo: "light-weight-agentic/payment-core",
+            sha: "7f9b2c140928e",
+            lines: 142,
+            contentSnippet: "def idempotent_request(redis_client: Redis, ttl_seconds: int = 60): ...",
+            commitAuthor: "platform-bot@internal"
+          };
+        } else if (selectedTool.id === 'tool-git-draft-pr') {
+          toolOutput = {
+            pr_number: 128,
+            pr_url: "https://github.com/light-weight-agentic/payment-core/pull/128",
+            branch: "feat/lw-4412-idempotency",
+            diffStats: "+84 lines, -2 lines, 6 tests added",
+            reviewers: ["senior-architect", "platform-lead"],
+            state: "DRAFT (Zero-Trust Sandbox Protected)"
+          };
+        } else if (selectedTool.id === 'tool-jira-read') {
+          toolOutput = {
+            key: "LW-4412",
+            summary: "Implement idempotency key Redis decorator for payment endpoint",
+            status: "IN_PROGRESS",
+            priority: "HIGH",
+            assignee: "Coding Agent (Automated)",
+            acceptanceCriteria: [
+              "Atomic lock using Redis SETNX with configurable TTL",
+              "6 unit tests covering concurrent conflict handling",
+              "Draft PR opened against feature branch"
+            ]
+          };
+        } else if (selectedTool.id === 'tool-ci-status') {
+          toolOutput = {
+            workflowRunId: "run-984214-pr128",
+            status: "SUCCESS",
+            conclusion: "COMPLETED",
+            durationSeconds: 38,
+            tests: { total: 48, passed: 48, failed: 0 },
+            sha: "88a4c102bf9"
+          };
+        } else if (selectedTool.id === 'tool-cms-read') {
+          toolOutput = {
+            slug: "adr-007-pgvector-vs-standalone",
+            title: "ADR-007: PostgreSQL pgvector vs Standalone Vector DB",
+            verdict: "APPROVED",
+            relevanceScore: 0.96
+          };
+        } else if (selectedTool.id === 'tool-cms-draft') {
+          toolOutput = {
+            status: "DRAFT_SAVED",
+            entryId: "entry-arch-2026-09",
+            environment: "staging-preview",
+            url: "https://preview.cms.internal/entries/entry-arch-2026-09"
+          };
+        } else if (selectedTool.id === 'tool-crm-lead') {
+          toolOutput = {
+            leadId: "lead-sf-90214",
+            crmSystem: "Salesforce Enterprise",
+            status: "DISCOVERY_SCHEDULED",
+            company: "Stripe Enterprise Labs",
+            attribution: "Agentic Engineering Portal (Zero-Trust Web Concierge)"
+          };
+        } else if (selectedTool.id === 'tool-observability') {
+          toolOutput = {
+            query: "rate(http_requests_total{status=~'5..'}[5m])",
+            resultType: "vector",
+            metricValue: 0.000,
+            status: "HEALTHY",
+            cluster: "Mac M2 Local Sandbox / Production Replica"
+          };
+        } else {
+          toolOutput = {
+            data: "MCP Tool executed successfully within least-privilege sandbox adapter."
+          };
+        }
+
         setToolResult({
           status: "SUCCESS",
           toolName: selectedTool.name,
           actionClass: selectedTool.actionClass,
-          durationMs: 142,
-          output: selectedTool.id === 'tool-git-draft-pr' ? {
-            pr_number: 128,
-            pr_url: "https://github.com/light-weight-agentic/payment-core/pull/128",
-            branch: "feat/lw-4412-idempotency",
-            diffStats: "+84 lines, -2 lines, 6 tests added"
-          } : {
-            data: "MCP Tool executed successfully within least-privilege sandbox adapter."
-          },
+          durationMs: 82 + Math.floor(Math.random() * 45),
+          output: toolOutput,
           auditId: `mcp-audit-${Date.now()}`
         });
       }
       setExecuting(false);
-    }, 700);
+    }, 600);
   };
 
   return (
