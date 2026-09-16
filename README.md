@@ -128,20 +128,25 @@ flowchart TD
 ### Plane 2: Agent Control Plane
 - **Location**: `planes/agent-control-plane/services/`
   - `agent-gateway/main.py` (Port 8001): Dispatches agent task envelopes across LangGraph cyclical state machine nodes (`validate_intent` ➔ `retrieve_knowledge` ➔ `llm_synthesis` ➔ `eval_gate` ➔ `tool_dispatch`). Persists state threads into PostgreSQL with `AsyncPostgresSaver`.
-  - `llm-gateway/main.py` (Port 8002): Local proxy that inspects prompts, scrubs sensitive PII/API keys with regex DLP rules, and offloads inference to local Ollama on Apple Silicon Metal GPUs.
+  - `llm-gateway/main.py` (Port 8002): Local proxy that inspects prompts, scrubs sensitive PII/API keys with regex DLP rules, executes dynamic Complexity Heuristic Routing, and offloads inference to local Ollama on Apple Silicon Metal GPUs. Includes an interactive Multi-LLM Cost & Latency Benchmark Engine.
 - **Key Tech**: FastAPI, LangGraph 0.2, Ollama C++ Metal backend.
 
-### Plane 3: Tool Integration Plane
+### Plane 3: Tool Integration Plane (MCP)
 - **Location**: `planes/tool-integration-plane/`
-  - `services/mcp-gateway/main.py` (Port 8003): Model Context Protocol (MCP) server enforcing Action Class validation (`read`, `draft`, `update`, `deploy`). Destructive operations require specific elevated roles.
+  - `services/mcp-gateway/main.py` (Port 8080): Model Context Protocol (MCP) gateway with **6 grouped server domains** (`Git VCS`, `Jira`, `CI`, `CMS/ADR`, `CRM`, `Observability`), dynamic transport protocol negotiation (`sse` vs. `stdio`), and live round-trip latency ping probes.
+  - **Auto Schema Form Generator & Raw JSON**: Form builder for tool invocation schemas with parameter validation.
+  - **Tool Execution Replay & Audit Ledger**: Immutable audit log of executed tools with instant 1-click replay.
+  - **Configuration Export Engine**: Exports configuration to `claude_desktop_config.json`, Open MCP `mcp-servers.json`, and containerized `docker-compose.mcp.yml`.
   - `adapters/github-adapter/adapter.py`: Isolated container worker executing branch creation, signed commits, and draft pull request submissions without exposing developer tokens to the model.
-- **Key Tech**: FastAPI, Model Context Protocol, PyGithub, Subprocess Sandboxing.
+- **Key Tech**: FastAPI, Model Context Protocol, PyGithub, Subprocess Sandboxing, Open MCP Schema.
 
-### Plane 4: Workflow Plane
+### Plane 4: Workflow Plane (Temporal)
 - **Location**: `planes/workflow-plane/`
   - `services/workflow-runtime/workflows.py`: Durable state machines (`EngineeringPRWorkflow`) that orchestrate Jira criteria retrieval, coding agent synthesis, quality evaluation gates, and draft PR generation with exponential backoff and replay reliability.
-  - `services/approval-service/approval_handler.py`: Dispatches cryptographic approval signals (`POST /api/v1/approvals/{id}/signal`) into paused Temporal workflows for production promotion.
-- **Key Tech**: Temporal.io Server (Port 7233 / UI: 8233), Temporal Python SDK (`temporalio`).
+  - **Interactive Workflow DAG Visualizer**: Visual graph interface rendering activity dependencies and state transitions (`FetchJira` ➔ `Planner` ➔ `PodmanSandbox` ➔ `TemporalApprovalGate` ➔ `GitPR`).
+  - **Signal & Query Dispatcher**: External gRPC signal injector (`human_approval_signal`, `pause_workflow_signal`, `retry_activity_signal`) and dynamic workflow query inspector (`getWorkflowState`, `getExecutionHistory`, `getMemoryFootprint`).
+  - `services/approval-service/approval_handler.py`: Dispatches cryptographic approval signals into paused Temporal workflows for production promotion.
+- **Key Tech**: Temporal.io Server (Port 7233 / UI: 8233), Temporal Python SDK (`temporalio`), Interactive React DAG Engine.
 
 ### Plane 5: Knowledge Plane
 - **Location**: `planes/knowledge-plane/`

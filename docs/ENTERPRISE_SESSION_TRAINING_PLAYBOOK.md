@@ -169,6 +169,19 @@ flowchart TD
 | **macOS Headroom (IDEs, OS)**| System | **9.21 GB** | *N/A* | `vm_stat` or `top -l 1` |
 | **Total Memory Consumed** | **Full Local Stack** | **6.79 GB / 16.00 GB** | *All Local* | **35-42% Utilization ($0.00/mo)** |
 
+### 2.3 Multi-LLM Benchmark Engine & Dynamic Complexity Routing
+In an enterprise fleet, not all prompts require a heavyweight 70B cloud model. The LLM Gateway implements **Complexity Heuristic Routing**:
+- **Fast Path (Sub-50ms)**: Syntactic chores, docstring creation, regex fixes, and status checks are routed to **Llama 3.2 3B** locally on Apple Silicon Metal GPU ($0.00 cost, ~24ms TTFT).
+- **Code Specialist Path**: AST manipulations, unit test generation, and complex refactors route to **Qwen 2.5 Coder 7B** (Metal GPU, ~38ms TTFT).
+- **Deep Reasoning Path**: Complex architectural evaluations and chain-of-thought analysis route to **DeepSeek R1 Distill 7B** locally or fallback to **Gemini 2.5 Pro** when multi-modal context exceeding 1M tokens is required.
+
+#### Enterprise Cost Benchmark Summary (Based on 500k Tokens / Day)
+| Architecture | Inference Runtime | Latency (TTFT) | Egress Security | Monthly Cloud Cost | Annual Savings |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **All Cloud (Claude 3.5)** | Anthropic Cloud | 310ms | Public Internet Egress | $135.00 / dev ($13,500/100 devs) | $0.00 (Baseline) |
+| **Hybrid (M2 Metal + Cloud)** | Local M2 + Gemini Fallback | 35ms (90% local) | Zero-Egress for 90% prompts | ~$13.50 / dev | **90% Savings ($145k/yr)** |
+| **Pure Local Apple Silicon** | Ollama Metal (M2/M3) | 24ms - 38ms | 100% Offline Airgapped | **$0.00 / month** | **100% Savings ($162k/yr)** |
+
 ---
 
 ## Module 3: Agent Control Plane — LangGraph 0.2 & State Checkpointing
@@ -246,6 +259,26 @@ sequenceDiagram
     MCP-->>Agent: {"status": "SUCCESS", "draft_pr_url": "..."}
 ```
 
+### 4.4 Configured MCP Server Grouping & Transport Protocol Governance
+In modern enterprise architectures, tools are not scattered randomly in a global flat namespace. Instead, they are partitioned into **isolated MCP servers** grouped by architectural bounded context:
+
+1. **Git VCS MCP Server**: Repository read, tree traversal, isolated branch creation, draft pull requests.
+2. **Jira & Agile Lifecycle Server**: Ticket metadata retrieval, acceptance criteria extraction, sprint transitions.
+3. **Continuous Integration & Test Server**: Pipeline run status, ephemeral pod logs, container test runners.
+4. **Knowledge CMS & ADR Server**: Architectural Decision Record ingestion, semantic documentation retrieval.
+5. **Customer Experience & CRM Server**: Lead intake, telemetry correlation, consultation booking.
+6. **Observability & Cluster Metrics Server**: Prometheus scrape metrics, Grafana alert triggers, cluster health.
+
+#### Dynamic Transport Modes: SSE vs Stdio
+- **Server-Sent Events (`sse`)**: Used for remote or containerized microservices communicating over HTTP/2 with real-time multiplexed streaming.
+- **Standard I/O (`stdio`)**: Used for local zero-network subprocess isolation, ensuring no port binding or local socket exposure.
+
+### 4.5 Standardized MCP Configuration Export Engine
+The platform natively exports its registered MCP server catalog into 3 industry standard configurations:
+- **Claude Desktop Config (`claude_desktop_config.json`)**: Enables instant developer workstation integration with Claude Desktop.
+- **Open MCP Specification (`mcp-servers.json`)**: Standard JSON schema for enterprise MCP proxies and agent runtimes.
+- **Docker Compose Topology (`docker-compose.mcp.yml`)**: Microservice orchestration file for running all 6 MCP servers in isolated Podman/Docker containers.
+
 ---
 
 ## Module 5: Knowledge Plane & Workflow Durability (Temporal)
@@ -261,6 +294,16 @@ Why is Temporal critical?
 A pull request cannot be merged until an enterprise architect reviews and approves it. This review may take 2 hours, 2 days, or 2 weeks.
 - **Without Temporal**: An agent script times out or consumes server resources while polling.
 - **With Temporal**: The workflow state is persisted in PostgreSQL. The worker safely yields all resources. When the architect clicks **"Sign-Off & Promote"** in the UI, an external Signal is dispatched to Temporal, waking the workflow instantly.
+
+### 5.3 Interactive Workflow DAG Visualizer & Dynamic Signal Dispatching
+To give release engineers complete operational visibility into in-flight workflows, the platform provides an interactive Directed Acyclic Graph (DAG) viewer:
+- **Visual DAG Flow**: Traces execution across `FetchJiraMetadata` ➔ `Ollama M2 Code Gen` ➔ `Podman Sandbox Test` ➔ `Temporal Approval Gate` ➔ `Create Git Pull Request`.
+- **Node State Inspection**: Engineers can click any node in the graph to inspect exact JSON activity arguments, return payloads, execution timings, and replay states.
+- **External Signal Dispatcher**: Enables operators to transmit gRPC signals directly to running workflows without process interruption:
+  - `human_approval_signal(approved=true|false)`: Resolves wait conditions and triggers promotion or halts.
+  - `pause_workflow_signal()`: Freezes execution indefinitely with state preserved in PostgreSQL checkpointer.
+  - `retry_activity_signal()`: Forces exponential backoff resets on transient activity failures.
+- **Real-time Query Inspector**: Executes non-blocking `@workflow.query` handlers (e.g. `getWorkflowState`, `getExecutionHistory`, `getMemoryFootprint`) returning sub-millisecond execution snapshots.
 
 ---
 

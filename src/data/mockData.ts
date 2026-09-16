@@ -86,7 +86,10 @@ export const MCP_SERVERS_CATALOG: MCPServer[] = [
     status: 'active',
     authType: 'Secrets Broker (JIT)',
     toolCount: 2,
-    description: 'Enterprise repository operations: commit inspection, branch creation, AST diff analysis, and draft PR dispatch.'
+    description: 'Enterprise repository operations: commit inspection, branch creation, AST diff analysis, and draft PR dispatch.',
+    latencyMs: 18,
+    tlsVersion: 'TLS 1.3 mTLS',
+    transportMode: 'stdio'
   },
   {
     id: 'server-jira',
@@ -97,7 +100,10 @@ export const MCP_SERVERS_CATALOG: MCPServer[] = [
     status: 'active',
     authType: 'OAuth2 Bearer',
     toolCount: 1,
-    description: 'Project tracking integration for issue spec retrieval, acceptance criteria parsing, and sprint status updates.'
+    description: 'Project tracking integration for issue spec retrieval, acceptance criteria parsing, and sprint status updates.',
+    latencyMs: 24,
+    tlsVersion: 'TLS 1.3 OAuth',
+    transportMode: 'sse'
   },
   {
     id: 'server-cicd',
@@ -108,7 +114,10 @@ export const MCP_SERVERS_CATALOG: MCPServer[] = [
     status: 'active',
     authType: 'Zero-Trust Token',
     toolCount: 2,
-    description: 'Continuous integration pipeline querying, artifact SHA verification, and gated production cluster releases.'
+    description: 'Continuous integration pipeline querying, artifact SHA verification, and gated production cluster releases.',
+    latencyMs: 31,
+    tlsVersion: 'gRPC mTLS',
+    transportMode: 'sse'
   },
   {
     id: 'server-cms',
@@ -119,7 +128,10 @@ export const MCP_SERVERS_CATALOG: MCPServer[] = [
     status: 'active',
     authType: 'Secrets Broker (JIT)',
     toolCount: 2,
-    description: 'Headless knowledge publishing, architectural decision record synchronization, and staging draft authoring.'
+    description: 'Headless knowledge publishing, architectural decision record synchronization, and staging draft authoring.',
+    latencyMs: 16,
+    tlsVersion: 'TLS 1.3 JIT',
+    transportMode: 'sse'
   },
   {
     id: 'server-crm',
@@ -130,7 +142,10 @@ export const MCP_SERVERS_CATALOG: MCPServer[] = [
     status: 'active',
     authType: 'OAuth2 Bearer',
     toolCount: 1,
-    description: 'Secure customer inquiry intake, requirement structuring, and prospective lead drafting in Salesforce.'
+    description: 'Secure customer inquiry intake, requirement structuring, and prospective lead drafting in Salesforce.',
+    latencyMs: 42,
+    tlsVersion: 'OAuth2 TLS',
+    transportMode: 'sse'
   },
   {
     id: 'server-obs',
@@ -141,7 +156,10 @@ export const MCP_SERVERS_CATALOG: MCPServer[] = [
     status: 'active',
     authType: 'Zero-Trust Token',
     toolCount: 1,
-    description: 'Telemetry bridge for PromQL metric queries, Loki structured log correlation, and distributed trace analysis.'
+    description: 'Telemetry bridge for PromQL metric queries, Loki structured log correlation, and distributed trace analysis.',
+    latencyMs: 12,
+    tlsVersion: 'Zero-Trust mTLS',
+    transportMode: 'stdio'
   }
 ];
 

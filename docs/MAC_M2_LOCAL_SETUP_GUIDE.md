@@ -24,6 +24,7 @@ This document is the definitive, step-by-step manual for provisioning, running, 
    - [Step 7: Automated End-to-End Test Suite Execution](#step-7-automated-end-to-end-test-suite-execution)
 5. [API Endpoint Verification Matrix](#5-api-endpoint-verification-matrix)
 6. [Troubleshooting & Performance Tuning Guide](#6-troubleshooting--performance-tuning-guide)
+7. [Interactive Developer Tools, MCP Exports & DAG Operations](#7-interactive-developer-tools-mcp-exports--dag-operations)
 
 ---
 
@@ -519,6 +520,52 @@ You can verify all microservice endpoints directly using `curl`:
 
 ### Issue 3: Docker containers run out of memory (OOMKilled)
 - **Fix**: Open Docker Desktop Settings ➔ **Resources** ➔ Set **Memory** to at least **6.0 GB** and **Virtual disk limit** to **64 GB**. Ensure **"Use VirtioFS"** is enabled for fast Mac filesystem sharing.
+
+---
+
+## 7. Interactive Developer Tools, MCP Exports & DAG Operations
+
+### 7.1 MCP Server Grouping, Live Pings, and Transport Toggles
+The web portal on port 3000 provides deep operational controls over the MCP Gateway:
+- **Server Health Ping**: Click the latency badge on any of the 6 MCP server tiles (`Git VCS`, `Jira`, `CI`, `CMS/ADR`, `CRM`, `Observability`) to trigger an live round-trip latency probe.
+- **Transport Mode Toggling**: Toggle between `sse` (Server-Sent Events streaming) and `stdio` (isolated subprocess standard I/O) on a per-server basis.
+- **Visual Form Schema Generator**: Switch between **Visual Form** mode (which parses tool schema arguments into dedicated input widgets) and **Raw JSON** for manual payload crafting.
+- **Tool Execution Replay & Audit Log**: Every tool execution is recorded with timestamp, latency, action class, and payload. Click **Replay** to reload and re-execute any previous tool call.
+
+### 7.2 Exporting MCP Configurations to Industry Standards
+Click **"Export MCP Config"** in the MCP Gateway view to export current configurations:
+1. **`claude_desktop_config.json`**:
+   ```json
+   {
+     "mcpServers": {
+       "git-vcs-server": {
+         "command": "python",
+         "args": ["-m", "planes.tool_plane.mcp_servers.git_server"],
+         "env": { "GATEWAY_PORT": "8080" }
+       }
+     }
+   }
+   ```
+2. **`mcp-servers.json` (Open MCP Specification)**: Universal JSON schema for enterprise MCP registries.
+3. **`docker-compose.mcp.yml`**: Self-contained container orchestration file for deploying all 6 MCP servers in isolated Podman/Docker networks.
+
+### 7.3 Interactive Temporal DAG Visualizer & External Signals
+Under the **Workflow Engine** tab (`/workflows`):
+- Click **"Visual DAG & Signals"** to switch to the interactive activity graph:
+  - `Fetch Jira Metadata` ➔ `Ollama M2 Code Gen` ➔ `Podman Sandbox Test` ➔ `Temporal Approval Gate` ➔ `Create Git Pull Request`.
+- Click on any DAG node to view inputs, return state, and execution duration.
+- **Dispatch External Signals**:
+  - Test Human-in-the-Loop approval gates by sending `human_approval_signal(approved=true)` or `(approved=false)`.
+  - Send `pause_workflow_signal()` to freeze activities without process restarts.
+  - Send `retry_activity_signal()` to force activity retries on transient errors.
+- **Execute Dynamic Queries**: Run `@workflow.query` handlers (`getWorkflowState`, `getExecutionHistory`, `getMemoryFootprint`) to inspect in-flight states via gRPC.
+
+### 7.4 Multi-LLM Benchmarking & Heuristic Routing
+Under the **LLM Gateway** tab:
+- Switch to **"Benchmark Engine"** to view real-time comparisons between local Apple Silicon Metal GPU inference (`Llama 3.2 3B`, `Qwen 2.5 Coder 7B`, `DeepSeek R1`) and cloud APIs (`Gemini 2.5 Flash/Pro`, `Claude 3.5 Sonnet`).
+- Adjust the **Daily Token Consumption Slider** (50k to 5M tokens/day) to calculate estimated monthly dollar savings from local hardware execution.
+- Test the **Complexity Heuristic Router**: input any prompt to evaluate its reasoning complexity score, code density, and recommended local/cloud routing path.
+- Inspect the **Zero-Trust PII & Secret Redaction Inspector** to verify that bearer tokens, database passwords, and emails are scrubbed before model context ingress.
 
 ---
 

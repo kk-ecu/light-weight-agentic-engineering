@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LLM_ROUTES } from '../data/mockData';
 import { LLMRouteConfig } from '../types';
+import { LlmBenchmarkView } from './LlmBenchmarkView';
 import { 
   Cpu, 
   Zap, 
@@ -12,10 +13,13 @@ import {
   CheckCircle2, 
   Sliders, 
   Layers,
-  Sparkles
+  Sparkles,
+  BarChart3,
+  SlidersHorizontal
 } from 'lucide-react';
 
 export const LlmGatewayView: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'sandbox' | 'benchmarks'>('sandbox');
   const [selectedRoute, setSelectedRoute] = useState<LLMRouteConfig>(LLM_ROUTES[0]); // llama3.2:3b
   const [prompt, setPrompt] = useState('Draft an architectural tradeoff analysis between running pgvector on PostgreSQL vs standalone Qdrant for 50M enterprise vector records.');
   const [systemPrompt, setSystemPrompt] = useState('You are the Enterprise Solutions Architect for light-weight-agentic-engineering. Ground analysis on operational simplicity, ACID durability, and M2 developer parity.');
@@ -191,14 +195,45 @@ async def test_idempotent_request_blocks_concurrent_execution():
               Multi-model abstraction layer, prompt versioning, PII/secret scrubbing, and local vs cloud cost governance.
             </p>
           </div>
-          <div className="flex items-center space-x-2 font-mono text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-            <span>Ollama Daemon:</span>
-            <span className="text-emerald-400 font-semibold">http://localhost:11434 (Active)</span>
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <div className="flex items-center space-x-2 font-mono text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+              <span>Ollama Daemon:</span>
+              <span className="text-emerald-400 font-semibold">http://localhost:11434 (Active)</span>
+            </div>
+
+            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+              <button
+                onClick={() => setViewMode('sandbox')}
+                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center space-x-1.5 ${
+                  viewMode === 'sandbox'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Sandbox & Router</span>
+              </button>
+              <button
+                onClick={() => setViewMode('benchmarks')}
+                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center space-x-1.5 ${
+                  viewMode === 'benchmarks'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Benchmark Engine</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Model Catalog Grid */}
+      {viewMode === 'benchmarks' ? (
+        <LlmBenchmarkView />
+      ) : (
+        <>
+          {/* Model Catalog Grid */}
       <div>
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
           Available Model Routes (Local Mac M2 + Cloud Fallback):
@@ -398,6 +433,8 @@ async def test_idempotent_request_blocks_concurrent_execution():
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

@@ -38,6 +38,22 @@ export interface MCPServer {
   authType: 'Secrets Broker (JIT)' | 'OAuth2 Bearer' | 'Zero-Trust Token';
   toolCount?: number;
   description: string;
+  latencyMs?: number;
+  tlsVersion?: string;
+  transportMode?: 'sse' | 'stdio';
+}
+
+export interface ToolExecutionAudit {
+  id: string;
+  timestamp: string;
+  toolId: string;
+  toolName: string;
+  serverName: string;
+  actionClass: string;
+  durationMs: number;
+  status: 'SUCCESS' | 'POLICY_HALTED' | 'FAILED';
+  params: any;
+  result: any;
 }
 
 export interface MCPTool {

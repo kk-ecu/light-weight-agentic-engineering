@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TEMPORAL_WORKFLOWS_SEED } from '../data/mockData';
 import { TemporalWorkflow } from '../types';
+import { TemporalDagViewer } from './TemporalDagViewer';
 import { 
   CheckCircle2, 
   Clock, 
@@ -17,7 +18,9 @@ import {
   Code,
   RotateCcw,
   Terminal,
-  Server
+  Server,
+  Radio,
+  Sparkles
 } from 'lucide-react';
 
 const SAMPLE_TEMPORAL_CODE = `# planes/workflow-plane/workflows/pr_review_workflow.py
@@ -93,7 +96,26 @@ export const WorkflowsApprovalView: React.FC = () => {
   const [workflows, setWorkflows] = useState<TemporalWorkflow[]>(TEMPORAL_WORKFLOWS_SEED);
   const [selectedWorkflow, setSelectedWorkflow] = useState<TemporalWorkflow>(TEMPORAL_WORKFLOWS_SEED[1]); // The one awaiting approval
   const [approvalDecisionMade, setApprovalDecisionMade] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'queue' | 'code'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'dag' | 'code'>('queue');
+  const [detailViewMode, setDetailViewMode] = useState<'timeline' | 'dag'>('timeline');
+
+  const handleSignalDispatched = (signalName: string, payload: any) => {
+    if (signalName === 'human_approval_signal') {
+      if (payload.approved) {
+        handleApprove(selectedWorkflow.id);
+      } else {
+        handleReject(selectedWorkflow.id);
+      }
+    } else if (signalName === 'pause_workflow_signal') {
+      const updatedStep = 'Execution Paused via Signal (Temporal Checkpointer Active)';
+      setWorkflows(prev => prev.map(wf => wf.id === selectedWorkflow.id ? { ...wf, currentStep: updatedStep } : wf));
+      setSelectedWorkflow(prev => ({ ...prev, currentStep: updatedStep }));
+    } else if (signalName === 'retry_activity_signal') {
+      const updatedStep = 'Activity Retry Triggered via Signal (Resetting Exponential Backoff)';
+      setWorkflows(prev => prev.map(wf => wf.id === selectedWorkflow.id ? { ...wf, currentStep: updatedStep } : wf));
+      setSelectedWorkflow(prev => ({ ...prev, currentStep: updatedStep }));
+    }
+  };
 
   const handleApprove = (wfId: string) => {
     setWorkflows(prev => prev.map(wf => {
@@ -231,7 +253,18 @@ export const WorkflowsApprovalView: React.FC = () => {
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
-              <span>Execution Queue ({workflows.length})</span>
+              <span>Queue ({workflows.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('dag')}
+              className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center space-x-1.5 ${
+                activeTab === 'dag'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>Visual DAG & Signals</span>
             </button>
             <button
               onClick={() => setActiveTab('code')}
@@ -242,13 +275,18 @@ export const WorkflowsApprovalView: React.FC = () => {
               }`}
             >
               <Code className="w-3.5 h-3.5" />
-              <span>Python Workflow Def</span>
+              <span>Python Def</span>
             </button>
           </div>
         </div>
       </div>
 
-      {activeTab === 'code' ? (
+      {activeTab === 'dag' ? (
+        <TemporalDagViewer
+          workflow={selectedWorkflow}
+          onSignalDispatched={handleSignalDispatched}
+        />
+      ) : activeTab === 'code' ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="px-5 py-3 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
             <div className="flex items-center space-x-2">
