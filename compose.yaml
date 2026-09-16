@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  # PostgreSQL with pgvector for Knowledge Embeddings & LangGraph Checkpointing
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agentic-postgres
+    environment:
+      POSTGRES_USER: agentic_admin
+      POSTGRES_PASSWORD: agentic_local_secret
+      POSTGRES_DB: agentic_agentic_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_admin -d agentic_agentic_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Distributed Locks, Caching & Session Rate Limiting
+  redis:
+    image: redis:7-alpine
+    container_name: agentic-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Temporal Workflow Orchestration Server
+  temporal:
+    image: temporalio/auto-setup:1.24.2
+    container_name: agentic-temporal
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=agentic_admin
+      - POSTGRES_PWD=agentic_local_secret
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Temporal Web UI Dashboard (Accessible at http://localhost:8233)
+  temporal-ui:
+    image: temporalio/ui:2.26.2
+    container_name: agentic-temporal-ui
+    ports:
+      - "8233:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      - temporal
+
+volumes:
+  postgres_data:
+  redis_data:

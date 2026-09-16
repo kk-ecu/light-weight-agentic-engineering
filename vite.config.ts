@@ -17,6 +17,28 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      proxy: {
+        '/api/agent': {
+          target: process.env.VITE_AGENT_GATEWAY_URL || 'http://localhost:8000',
+          changeOrigin: true,
+          rewrite: (p: string) => p.replace(/^\/api\/agent/, '')
+        },
+        '/api/mcp': {
+          target: process.env.VITE_MCP_GATEWAY_URL || 'http://localhost:8080',
+          changeOrigin: true,
+          rewrite: (p: string) => p.replace(/^\/api\/mcp/, '')
+        },
+        '/api/llm': {
+          target: process.env.VITE_LLM_GATEWAY_URL || 'http://localhost:8002',
+          changeOrigin: true,
+          rewrite: (p: string) => p.replace(/^\/api\/llm/, '')
+        },
+        '/api/ollama': {
+          target: process.env.VITE_OLLAMA_URL || 'http://localhost:11434',
+          changeOrigin: true,
+          rewrite: (p: string) => p.replace(/^\/api\/ollama/, '')
+        }
+      },
     },
   };
 });

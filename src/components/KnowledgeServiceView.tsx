@@ -17,7 +17,9 @@ import {
   Clock,
   Cpu,
   ShieldCheck,
-  X
+  X,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export const KnowledgeServiceView: React.FC = () => {
@@ -27,6 +29,8 @@ export const KnowledgeServiceView: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
   const [activeDocModal, setActiveDocModal] = useState<KnowledgeDocument | null>(null);
+  const [copiedDoc, setCopiedDoc] = useState(false);
+  const [modalTab, setModalTab] = useState<'article' | 'metadata'>('article');
 
   const calculateScore = (doc: KnowledgeDocument, query: string) => {
     const q = query.toLowerCase().trim();
@@ -79,11 +83,12 @@ export const KnowledgeServiceView: React.FC = () => {
   };
 
   const sampleQueries = [
+    'Live Data & Mac M2 Setup Guide',
+    'End-to-End Workflow & 3 Gateways Lifecycle',
+    'Hands-On Workshop & Keynote Speech Blueprint',
     'How does local Ollama on Mac M2 work?',
     'What is Temporal Workflows durable execution & HITL?',
-    'Enterprise 1,000+ engineer masterclass training playbook',
-    'ADR-009 zero-trust MCP gateway isolation',
-    'pgvector HNSW vector index cosine similarity'
+    'ADR-009 zero-trust MCP gateway isolation'
   ];
 
   const filteredDocs = selectedDomain === 'all' 
@@ -305,57 +310,134 @@ export const KnowledgeServiceView: React.FC = () => {
 
       {/* Document Detail Modal */}
       {activeDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
-                  {activeDocModal.domain}
-                </span>
-                <h3 className="text-base font-bold text-white mt-1.5">{activeDocModal.title}</h3>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">{activeDocModal.source}</p>
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-800 flex items-start justify-between gap-4 shrink-0 bg-slate-900">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                    {activeDocModal.domain}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono flex items-center space-x-1">
+                    <FileText className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{activeDocModal.source}</span>
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-white leading-snug">{activeDocModal.title}</h3>
               </div>
+              <div className="flex items-center space-x-2 shrink-0">
+                <button
+                  onClick={() => {
+                    const textToCopy = activeDocModal.fullContent || activeDocModal.contentSnippet;
+                    navigator.clipboard.writeText(textToCopy);
+                    setCopiedDoc(true);
+                    setTimeout(() => setCopiedDoc(false), 2000);
+                  }}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs rounded-lg border border-slate-700 transition-colors flex items-center space-x-1.5"
+                >
+                  {copiedDoc ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-amber-400" />}
+                  <span>{copiedDoc ? 'Copied Markdown!' : 'Copy Markdown'}</span>
+                </button>
+                <button
+                  onClick={() => setActiveDocModal(null)}
+                  className="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 border border-slate-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Navigation Tabs */}
+            <div className="px-6 border-b border-slate-800 bg-slate-950/50 flex space-x-4 shrink-0">
               <button
-                onClick={() => setActiveDocModal(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+                onClick={() => setModalTab('article')}
+                className={`py-3 text-xs font-semibold border-b-2 transition-colors flex items-center space-x-2 ${
+                  modalTab === 'article'
+                    ? 'border-amber-400 text-amber-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
               >
-                <X className="w-5 h-5" />
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Full Markdown Document</span>
+              </button>
+              <button
+                onClick={() => setModalTab('metadata')}
+                className={`py-3 text-xs font-semibold border-b-2 transition-colors flex items-center space-x-2 ${
+                  modalTab === 'metadata'
+                    ? 'border-amber-400 text-amber-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Vector Metadata & Semantic Tags</span>
               </button>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-3">
-              <div className="font-semibold text-slate-200">Ingested Abstract / Semantic Embedding Content:</div>
-              <p>{activeDocModal.contentSnippet}</p>
+            {/* Modal Body (Scrollable) */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-5 text-slate-300">
+              {modalTab === 'article' ? (
+                <div className="space-y-4">
+                  {activeDocModal.fullContent ? (
+                    <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+                      {activeDocModal.fullContent}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 text-sm text-slate-300 leading-relaxed">
+                        <div className="text-xs font-semibold text-amber-400 mb-2 font-mono uppercase">Abstract & Ingested Knowledge:</div>
+                        <p>{activeDocModal.contentSnippet}</p>
+                      </div>
+                      <p className="text-xs text-slate-500 italic">
+                        Full source document is indexed in pgvector at <code className="text-slate-400">{activeDocModal.source}</code>.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-2">
+                    <div className="font-semibold text-slate-200">Semantic Embedding Summary:</div>
+                    <p>{activeDocModal.contentSnippet}</p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                      <div className="text-slate-500 text-[10px]">Vector Dimensions</div>
+                      <div className="text-amber-400 font-bold text-sm mt-0.5">{activeDocModal.vectorDimensions}d</div>
+                    </div>
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                      <div className="text-slate-500 text-[10px]">Indexed Chunks</div>
+                      <div className="text-emerald-400 font-bold text-sm mt-0.5">{activeDocModal.chunkCount}</div>
+                    </div>
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                      <div className="text-slate-500 text-[10px]">Last Synced</div>
+                      <div className="text-sky-400 font-bold text-sm mt-0.5">{activeDocModal.updatedAt}</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <span className="text-xs text-slate-400 font-semibold block">Semantic Classification Tags:</span>
+                    <div className="flex items-center space-x-1.5 flex-wrap gap-y-1.5">
+                      {activeDocModal.tags.map(t => (
+                        <span key={t} className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                <div className="text-slate-500 text-[10px]">Vector Dimensions</div>
-                <div className="text-amber-400 font-bold text-sm mt-0.5">{activeDocModal.vectorDimensions}d</div>
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-800 bg-slate-950/70 flex items-center justify-between shrink-0">
+              <div className="text-xs text-slate-500 font-mono">
+                Source: <span className="text-slate-300">{activeDocModal.source}</span>
               </div>
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                <div className="text-slate-500 text-[10px]">Indexed Chunks</div>
-                <div className="text-emerald-400 font-bold text-sm mt-0.5">{activeDocModal.chunkCount}</div>
-              </div>
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                <div className="text-slate-500 text-[10px]">Last Synced</div>
-                <div className="text-sky-400 font-bold text-sm mt-0.5">{activeDocModal.updatedAt}</div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-              <span className="text-xs text-slate-400 mr-1">Semantic Tags:</span>
-              {activeDocModal.tags.map(t => (
-                <span key={t} className="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                  #{t}
-                </span>
-              ))}
-            </div>
-
-            <div className="pt-3 border-t border-slate-800 flex justify-end">
               <button
                 onClick={() => setActiveDocModal(null)}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-colors"
               >
                 Close Document
               </button>

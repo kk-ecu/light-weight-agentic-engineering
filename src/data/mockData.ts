@@ -1,4 +1,5 @@
 import { AgentDefinition, MCPTool, TemporalWorkflow, KnowledgeDocument, LLMRouteConfig } from '../types';
+import { ARTICLE_3_GATEWAYS_E2E, ARTICLE_WORKSHOP_KEYNOTE_PLAYBOOK, ARTICLE_LIVE_MAC_M2_SETUP } from './knowledgeArticles';
 
 export const AGENTS_CATALOG: AgentDefinition[] = [
   {
@@ -233,6 +234,42 @@ export const TEMPORAL_WORKFLOWS_SEED: TemporalWorkflow[] = [
 ];
 
 export const KNOWLEDGE_BASE_SEED: KnowledgeDocument[] = [
+  {
+    id: 'kb-live-m2-setup-003',
+    title: 'Live Data & Mac M2 Production Setup Guide: Transitioning from Browser Simulation to 100% Live Execution',
+    domain: 'runbooks',
+    source: 'docs/LIVE_MAC_M2_CONFIGURATION_AND_SETUP_GUIDE.md',
+    contentSnippet: 'Complete production setup guide detailing the exact configuration file changes (.env.local, vite.config.ts proxy, gateway env files, compose.yaml) and ordered execution runbook to transition from browser simulation to 100% live Apple Silicon M2 execution.',
+    fullContent: ARTICLE_LIVE_MAC_M2_SETUP,
+    vectorDimensions: 1536,
+    tags: ['MacM2', 'LiveExecution', 'Configuration', 'SetupGuide', 'Ollama', 'Gateways', 'Docker'],
+    updatedAt: '2026-09-16',
+    chunkCount: 32
+  },
+  {
+    id: 'kb-gateways-e2e-001',
+    title: 'End-to-End Workflow: The 3 Gateways Architecture & Step-by-Step Lifecycle',
+    domain: 'architecture',
+    source: 'docs/architecture/03-gateways-end-to-end-workflow.md',
+    contentSnippet: 'Comprehensive architectural specification detailing how Agent Gateway (:8000), MCP Gateway (:8080), and LLM Gateway (:8002) collaborate across a 6-phase Ticket-to-PR lifecycle with zero-trust tool access, Apple Silicon M2 local synthesis, and Temporal HITL gates.',
+    fullContent: ARTICLE_3_GATEWAYS_E2E,
+    vectorDimensions: 1536,
+    tags: ['Gateways', 'EndToEnd', 'Lifecycle', 'Architecture', 'MCP', 'LangGraph', 'LocalM2'],
+    updatedAt: '2026-09-16',
+    chunkCount: 28
+  },
+  {
+    id: 'kb-workshop-keynote-002',
+    title: 'Hands-On Workshop & Keynote Speech Blueprint: 90-Minute Enterprise Runbook',
+    domain: 'training',
+    source: 'docs/training/WORKSHOP_KEYNOTE_SPEECH_PLAYBOOK.md',
+    contentSnippet: 'Complete keynote speech structure and 90-minute hands-on workshop runbook. Includes 3 anchor theses, presenter scripts, minute-by-minute timeline, 3 hands-on participant exercises, and enterprise objection handling.',
+    fullContent: ARTICLE_WORKSHOP_KEYNOTE_PLAYBOOK,
+    vectorDimensions: 1536,
+    tags: ['Workshop', 'Keynote', 'Playbook', 'Speech', 'HandsOn', 'Exercises', 'Training'],
+    updatedAt: '2026-09-16',
+    chunkCount: 36
+  },
   {
     id: 'kb-arch-001',
     title: 'light-weight-agentic-engineering Solution Architecture Document',

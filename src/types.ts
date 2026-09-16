@@ -69,6 +69,7 @@ export interface KnowledgeDocument {
   title: string;
   domain: 'architecture' | 'adrs' | 'cms' | 'runbooks' | 'tickets' | 'code' | 'training';
   contentSnippet: string;
+  fullContent?: string;
   source: string;
   vectorDimensions: number;
   tags: string[];

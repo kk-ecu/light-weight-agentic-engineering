@@ -1,3 +1,5 @@
+import { ARTICLE_3_GATEWAYS_E2E, ARTICLE_WORKSHOP_KEYNOTE_PLAYBOOK, ARTICLE_LIVE_MAC_M2_SETUP } from './knowledgeArticles';
+
 export interface FileCodeSnippet {
   path: string;
   name: string;
@@ -29,6 +31,93 @@ export const MONOREPO_FILES: FileCodeSnippet[] = [
     content: `# light-weight-agentic-engineering
 Enterprise Multi-Agent Engineering Platform across 6 Decoupled Planes.
 Refer to /README.md on disk for the complete master documentation, C4 models, and local setup guide.`
+  },
+  {
+    path: 'compose.yaml',
+    name: 'compose.yaml',
+    category: 'Root Config',
+    language: 'yaml',
+    description: 'Docker Compose manifest for Mac M2: PostgreSQL 16 with pgvector, Redis 7, Temporal Server & Temporal Web UI dashboard (:8233).',
+    content: `version: "3.9"
+
+services:
+  # PostgreSQL with pgvector for Knowledge Embeddings & LangGraph Checkpointing
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agentic-postgres
+    environment:
+      POSTGRES_USER: agentic_admin
+      POSTGRES_PASSWORD: agentic_local_secret
+      POSTGRES_DB: agentic_agentic_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_admin -d agentic_agentic_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Distributed Locks, Caching & Session Rate Limiting
+  redis:
+    image: redis:7-alpine
+    container_name: agentic-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Temporal Workflow Orchestration Server
+  temporal:
+    image: temporalio/auto-setup:1.24.2
+    container_name: agentic-temporal
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=agentic_admin
+      - POSTGRES_PWD=agentic_local_secret
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Temporal Web UI Dashboard (Accessible at http://localhost:8233)
+  temporal-ui:
+    image: temporalio/ui:2.26.2
+    container_name: agentic-temporal-ui
+    ports:
+      - "8233:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      - temporal
+
+volumes:
+  postgres_data:
+  redis_data:
+`
+  },
+  {
+    path: '.env.local',
+    name: '.env.local',
+    category: 'Root Config',
+    language: 'bash',
+    description: 'Local environment configuration to switch the Web UI from browser simulation to live Mac M2 daemons and reverse proxies.',
+    content: `# Switch the user interface from deterministic simulation to real local API calls
+VITE_EXECUTION_MODE=live
+
+# The real URLs where your Mac is running the services
+VITE_AGENT_GATEWAY_URL=http://localhost:8000
+VITE_MCP_GATEWAY_URL=http://localhost:8080
+VITE_LLM_GATEWAY_URL=http://localhost:8002
+VITE_OLLAMA_URL=http://localhost:11434
+VITE_TEMPORAL_UI_URL=http://localhost:8233
+VITE_PGVECTOR_URL=http://localhost:5432
+`
   },
   {
     path: 'podman-compose.local.yml',
@@ -666,6 +755,30 @@ class AgentTaskEnvelope(BaseModel):
   },
 
   // 9. Masterclass Training & Documentation Playbooks
+  {
+    path: 'docs/LIVE_MAC_M2_CONFIGURATION_AND_SETUP_GUIDE.md',
+    name: 'LIVE_MAC_M2_CONFIGURATION_AND_SETUP_GUIDE.md',
+    category: 'Training & Docs',
+    language: 'markdown',
+    description: 'Complete configuration changes and ordered execution runbook to transition this workspace from browser simulation to 100% live Apple Silicon M2 execution.',
+    content: ARTICLE_LIVE_MAC_M2_SETUP
+  },
+  {
+    path: 'docs/architecture/03-gateways-end-to-end-workflow.md',
+    name: '03-gateways-end-to-end-workflow.md',
+    category: 'Training & Docs',
+    language: 'markdown',
+    description: 'Detailed end-to-end workflow architecture: Step-by-step lifecycle of an enterprise request across Agent Gateway (:8000), MCP Gateway (:8080), and LLM Gateway (:8002).',
+    content: ARTICLE_3_GATEWAYS_E2E
+  },
+  {
+    path: 'docs/training/WORKSHOP_KEYNOTE_SPEECH_PLAYBOOK.md',
+    name: 'WORKSHOP_KEYNOTE_SPEECH_PLAYBOOK.md',
+    category: 'Training & Docs',
+    language: 'markdown',
+    description: 'Keynote speech structure and 90-minute workshop execution runbook with Exercises 1, 2, 3, presenter script, and audience objection handling.',
+    content: ARTICLE_WORKSHOP_KEYNOTE_PLAYBOOK
+  },
   {
     path: 'docs/ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
     name: 'ENTERPRISE_SESSION_TRAINING_PLAYBOOK.md',
