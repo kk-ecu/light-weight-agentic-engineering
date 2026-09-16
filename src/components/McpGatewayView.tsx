@@ -118,7 +118,7 @@ export const McpGatewayView: React.FC = () => {
           </div>
           <div className="flex items-center space-x-2 font-mono text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
             <span>FastAPI:</span>
-            <span className="text-sky-400 font-semibold">:8001/v1/tools/invoke</span>
+            <span className="text-sky-400 font-semibold">:8080/v1/tools/invoke</span>
           </div>
         </div>
       </div>

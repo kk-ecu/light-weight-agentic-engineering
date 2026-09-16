@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { C4_DIAGRAMS } from '../data/c4DiagramData';
+import { ArchitectureView } from './ArchitectureView';
 import { 
   Layers, 
   ArrowRight, 
@@ -21,18 +22,60 @@ import {
   ExternalLink,
   ChevronRight,
   Boxes,
-  Network
+  Network,
+  GitMerge
 } from 'lucide-react';
 
 export const C4ArchitectureView: React.FC = () => {
+  const [architectureTab, setArchitectureTab] = useState<'c4-model' | 'sequence-flows'>('c4-model');
   const [selectedLevel, setSelectedLevel] = useState<'level1' | 'level2' | 'level3' | 'level4'>('level2');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   const currentDiagram = C4_DIAGRAMS[selectedLevel];
   const selectedElement = currentDiagram.elements.find(el => el.id === selectedElementId) || currentDiagram.elements[0];
 
+  if (architectureTab === 'sequence-flows') {
+    return (
+      <div className="space-y-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 p-1.5 rounded-xl w-fit">
+            <button
+              onClick={() => setArchitectureTab('c4-model')}
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
+              C4 Structural Model (Levels 1–4)
+            </button>
+            <button
+              onClick={() => setArchitectureTab('sequence-flows')}
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 shadow-md font-bold transition-all"
+            >
+              Interactive Sequence Flows (11.1, 11.2, 11.3)
+            </button>
+          </div>
+        </div>
+        <ArchitectureView />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Top Architecture Navigation Toggle */}
+      <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 p-1.5 rounded-xl w-fit">
+        <button
+          onClick={() => setArchitectureTab('c4-model')}
+          className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 shadow-md font-bold transition-all"
+        >
+          C4 Structural Model (Levels 1–4)
+        </button>
+        <button
+          onClick={() => setArchitectureTab('sequence-flows')}
+          className="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+        >
+          Interactive Sequence Flows (11.1, 11.2, 11.3)
+        </button>
+      </div>
+
       {/* Header Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -231,54 +274,124 @@ export const C4ArchitectureView: React.FC = () => {
             </div>
           )}
 
-          {/* LEVEL 2 SPECIFIC VISUAL LAYOUT: The 6 Decoupled Planes Grid */}
+          {/* LEVEL 2 SPECIFIC VISUAL LAYOUT: The 6 Decoupled Planes Grid + Dedicated Shared Infrastructure Tier */}
           {selectedLevel === 'level2' && (
-            <div className="space-y-4">
-              <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>The 6 Autonomous Decoupled Planes</span>
-                <span className="text-amber-400">Port-isolated microservices</span>
+            <div className="space-y-6">
+              {/* Top Group: The 6 Autonomous Microservice Planes */}
+              <div>
+                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Layers className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="font-bold text-white">The 6 Autonomous Application Planes (Microservice Containers)</span>
+                  </div>
+                  <span className="text-amber-400 font-mono">Port-isolated microservices</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {currentDiagram.elements.filter(e => e.type === 'Container').map((el) => {
+                    const isSelected = selectedElement?.id === el.id;
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={() => setSelectedElementId(el.id)}
+                        className={`p-4 rounded-xl cursor-pointer border transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-slate-950 border-amber-500 ring-2 ring-amber-500/40 shadow-lg'
+                            : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-950'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <Layers className="w-4 h-4 text-amber-400" />
+                              <span className="font-bold text-xs text-white">{el.name}</span>
+                            </div>
+                            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
+                              Plane
+                            </span>
+                          </div>
+
+                          <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                            {el.description}
+                          </p>
+                        </div>
+
+                        {el.technology && (
+                          <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono">
+                            <span className="text-slate-500">Tech:</span>
+                            <span className="text-amber-300 font-semibold truncate max-w-[190px]">{el.technology}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentDiagram.elements.map((el) => {
-                  const isSelected = selectedElement?.id === el.id;
-                  return (
-                    <div
-                      key={el.id}
-                      onClick={() => setSelectedElementId(el.id)}
-                      className={`p-4 rounded-xl cursor-pointer border transition-all flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-slate-950 border-amber-500 ring-2 ring-amber-500/40 shadow-lg'
-                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-950'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            {el.type === 'Container' && <Layers className="w-4 h-4 text-amber-400" />}
-                            {el.type === 'Database' && <Database className="w-4 h-4 text-emerald-400" />}
-                            {el.type === 'Queue' && <Workflow className="w-4 h-4 text-purple-400" />}
-                            <span className="font-bold text-xs text-white">{el.name}</span>
+              {/* Directional Connector Down to Persistence */}
+              <div className="flex justify-center items-center my-1">
+                <div className="flex items-center space-x-2 bg-slate-950 px-3 py-1 rounded-full border border-slate-800 text-[10px] font-mono text-emerald-400">
+                  <span>▼ State Persistence, Checkpointing, & Event Queuing ▼</span>
+                </div>
+              </div>
+
+              {/* Bottom Group: Shared Infrastructure & Persistence Layer */}
+              <div className="bg-slate-950/90 border border-emerald-500/30 rounded-2xl p-4.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2.5 border-b border-slate-800/80">
+                  <div className="flex items-center space-x-2">
+                    <Database className="w-4 h-4 text-emerald-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Shared Infrastructure & Persistence Tier (Underlying Foundation)
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400/90 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/30 self-start sm:self-auto">
+                    Docker Compose Stack (compose.yaml)
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mb-3">
+                  These underlying stateful services run as persistent daemons outside the application planes. They provide durable vector search, event-sourced checkpointing, and in-memory pub/sub for all 6 planes.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {currentDiagram.elements.filter(e => e.type === 'Database' || e.type === 'Queue').map((el) => {
+                    const isSelected = selectedElement?.id === el.id;
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={() => setSelectedElementId(el.id)}
+                        className={`p-4 rounded-xl cursor-pointer border transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-slate-900 border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg'
+                            : 'bg-slate-900/70 border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              {el.type === 'Database' && <Database className="w-4 h-4 text-emerald-400" />}
+                              {el.type === 'Queue' && <Workflow className="w-4 h-4 text-purple-400" />}
+                              <span className="font-bold text-xs text-white">{el.name}</span>
+                            </div>
+                            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-950 text-emerald-400 border border-emerald-500/30">
+                              {el.type === 'Database' ? 'Vector & Checkpoint DB' : 'In-Memory Cache & Bus'}
+                            </span>
                           </div>
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
-                            {el.plane || el.type}
-                          </span>
+
+                          <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                            {el.description}
+                          </p>
                         </div>
 
-                        <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
-                          {el.description}
-                        </p>
+                        {el.technology && (
+                          <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono">
+                            <span className="text-slate-500">Tech:</span>
+                            <span className="text-emerald-300 font-semibold">{el.technology}</span>
+                          </div>
+                        )}
                       </div>
-
-                      {el.technology && (
-                        <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono">
-                          <span className="text-slate-500">Tech:</span>
-                          <span className="text-amber-300 font-semibold truncate max-w-[240px]">{el.technology}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
