@@ -28,8 +28,22 @@ export interface AgentDefinition {
   langGraphNodes: string[];
 }
 
+export interface MCPServer {
+  id: string;
+  name: string;
+  category: 'Git' | 'Jira' | 'CI/CD' | 'CMS' | 'CRM' | 'Observability' | 'Search' | 'Security';
+  endpoint: string;
+  protocol: string;
+  status: 'active' | 'sandboxed' | 'maintenance';
+  authType: 'Secrets Broker (JIT)' | 'OAuth2 Bearer' | 'Zero-Trust Token';
+  toolCount?: number;
+  description: string;
+}
+
 export interface MCPTool {
   id: string;
+  serverId?: string;
+  serverName?: string;
   name: string;
   category: 'Git' | 'Jira' | 'CI/CD' | 'CMS' | 'CRM' | 'Observability' | 'Search' | 'Security';
   description: string;

@@ -1,4 +1,4 @@
-import { AgentDefinition, MCPTool, TemporalWorkflow, KnowledgeDocument, LLMRouteConfig } from '../types';
+import { AgentDefinition, MCPTool, MCPServer, TemporalWorkflow, KnowledgeDocument, LLMRouteConfig } from '../types';
 import { ARTICLE_3_GATEWAYS_E2E, ARTICLE_WORKSHOP_KEYNOTE_PLAYBOOK, ARTICLE_LIVE_MAC_M2_SETUP } from './knowledgeArticles';
 
 export const AGENTS_CATALOG: AgentDefinition[] = [
@@ -76,104 +76,191 @@ export const AGENTS_CATALOG: AgentDefinition[] = [
   }
 ];
 
+export const MCP_SERVERS_CATALOG: MCPServer[] = [
+  {
+    id: 'server-git',
+    name: 'Git VCS MCP Server',
+    category: 'Git',
+    endpoint: 'mcp://git-adapter.internal:8080/v1',
+    protocol: 'JSON-RPC 2.0 (stdio/http)',
+    status: 'active',
+    authType: 'Secrets Broker (JIT)',
+    toolCount: 2,
+    description: 'Enterprise repository operations: commit inspection, branch creation, AST diff analysis, and draft PR dispatch.'
+  },
+  {
+    id: 'server-jira',
+    name: 'Jira & Agile Lifecycle Server',
+    category: 'Jira',
+    endpoint: 'mcp://jira-adapter.internal:8080/v1',
+    protocol: 'JSON-RPC 2.0 (http)',
+    status: 'active',
+    authType: 'OAuth2 Bearer',
+    toolCount: 1,
+    description: 'Project tracking integration for issue spec retrieval, acceptance criteria parsing, and sprint status updates.'
+  },
+  {
+    id: 'server-cicd',
+    name: 'ArgoCD & CI/CD Pipeline Server',
+    category: 'CI/CD',
+    endpoint: 'mcp://ci-adapter.internal:8080/v1',
+    protocol: 'JSON-RPC 2.0 (http/grpc)',
+    status: 'active',
+    authType: 'Zero-Trust Token',
+    toolCount: 2,
+    description: 'Continuous integration pipeline querying, artifact SHA verification, and gated production cluster releases.'
+  },
+  {
+    id: 'server-cms',
+    name: 'Headless Content & ADR CMS Server',
+    category: 'CMS',
+    endpoint: 'mcp://cms-adapter.internal:8080/v1',
+    protocol: 'JSON-RPC 2.0 (http)',
+    status: 'active',
+    authType: 'Secrets Broker (JIT)',
+    toolCount: 2,
+    description: 'Headless knowledge publishing, architectural decision record synchronization, and staging draft authoring.'
+  },
+  {
+    id: 'server-crm',
+    name: 'Enterprise CRM Concierge Server',
+    category: 'CRM',
+    endpoint: 'mcp://crm-adapter.internal:8080/v1',
+    protocol: 'JSON-RPC 2.0 (http)',
+    status: 'active',
+    authType: 'OAuth2 Bearer',
+    toolCount: 1,
+    description: 'Secure customer inquiry intake, requirement structuring, and prospective lead drafting in Salesforce.'
+  },
+  {
+    id: 'server-obs',
+    name: 'OpenTelemetry & Metrics Server',
+    category: 'Observability',
+    endpoint: 'mcp://obs-adapter.internal:8080/v1',
+    protocol: 'JSON-RPC 2.0 (http)',
+    status: 'active',
+    authType: 'Zero-Trust Token',
+    toolCount: 1,
+    description: 'Telemetry bridge for PromQL metric queries, Loki structured log correlation, and distributed trace analysis.'
+  }
+];
+
 export const MCP_TOOLS_CATALOG: MCPTool[] = [
   {
     id: 'tool-git-read',
+    serverId: 'server-git',
+    serverName: 'Git VCS MCP Server',
     name: 'git_read_repository',
     category: 'Git',
     description: 'Reads repository tree, commit history, and file contents across GitHub/GitLab repositories.',
     actionClass: 'read',
     requiresApproval: false,
     schemaParams: { repo: 'string', path: 'string', ref: 'string' },
-    endpoint: 'mcp://git-adapter.internal/v1/read',
+    endpoint: 'mcp://git-adapter.internal:8080/v1/read',
     status: 'active'
   },
   {
     id: 'tool-git-draft-pr',
+    serverId: 'server-git',
+    serverName: 'Git VCS MCP Server',
     name: 'git_create_draft_pr',
     category: 'Git',
     description: 'Creates a working feature branch, commits proposed code changes, and opens a Draft Pull Request.',
     actionClass: 'draft',
     requiresApproval: false,
     schemaParams: { repo: 'string', branch: 'string', title: 'string', body: 'string', files: 'array' },
-    endpoint: 'mcp://git-adapter.internal/v1/draft-pr',
+    endpoint: 'mcp://git-adapter.internal:8080/v1/draft-pr',
     status: 'active'
   },
   {
     id: 'tool-jira-read',
+    serverId: 'server-jira',
+    serverName: 'Jira & Agile Lifecycle Server',
     name: 'jira_get_issue',
     category: 'Jira',
     description: 'Fetches issue summary, acceptance criteria, priority, and comments from enterprise Jira/Linear.',
     actionClass: 'read',
     requiresApproval: false,
     schemaParams: { issueKey: 'string' },
-    endpoint: 'mcp://jira-adapter.internal/v1/issue',
+    endpoint: 'mcp://jira-adapter.internal:8080/v1/issue',
     status: 'active'
   },
   {
     id: 'tool-ci-status',
+    serverId: 'server-cicd',
+    serverName: 'ArgoCD & CI/CD Pipeline Server',
     name: 'ci_get_pipeline_status',
     category: 'CI/CD',
     description: 'Queries GitHub Actions / ArgoCD workflow run status, test outcomes, and artifact SHA hashes.',
     actionClass: 'read',
     requiresApproval: false,
     schemaParams: { workflowRunId: 'string' },
-    endpoint: 'mcp://ci-adapter.internal/v1/status',
+    endpoint: 'mcp://ci-adapter.internal:8080/v1/status',
     status: 'active'
   },
   {
     id: 'tool-cms-read',
+    serverId: 'server-cms',
+    serverName: 'Headless Content & ADR CMS Server',
     name: 'cms_get_content',
     category: 'CMS',
     description: 'Retrieves published and draft content entries from Strapi / Contentful headless CMS.',
     actionClass: 'read',
     requiresApproval: false,
     schemaParams: { contentType: 'string', slug: 'string' },
-    endpoint: 'mcp://cms-adapter.internal/v1/content',
+    endpoint: 'mcp://cms-adapter.internal:8080/v1/content',
     status: 'active'
   },
   {
     id: 'tool-cms-draft',
+    serverId: 'server-cms',
+    serverName: 'Headless Content & ADR CMS Server',
     name: 'cms_update_draft',
     category: 'CMS',
     description: 'Updates a staging/draft content entry in the CMS without publishing to live production.',
     actionClass: 'draft',
     requiresApproval: false,
     schemaParams: { entryId: 'string', payload: 'object' },
-    endpoint: 'mcp://cms-adapter.internal/v1/draft',
+    endpoint: 'mcp://cms-adapter.internal:8080/v1/draft',
     status: 'active'
   },
   {
     id: 'tool-crm-lead',
+    serverId: 'server-crm',
+    serverName: 'Enterprise CRM Concierge Server',
     name: 'crm_create_lead',
     category: 'CRM',
     description: 'Creates a prospective enterprise lead in Salesforce/HubSpot with source attribution and needs summary.',
     actionClass: 'draft',
     requiresApproval: false,
     schemaParams: { company: 'string', contactEmail: 'string', requirementSummary: 'string' },
-    endpoint: 'mcp://crm-adapter.internal/v1/lead',
+    endpoint: 'mcp://crm-adapter.internal:8080/v1/lead',
     status: 'active'
   },
   {
     id: 'tool-observability',
+    serverId: 'server-obs',
+    serverName: 'OpenTelemetry & Metrics Server',
     name: 'observability_query_telemetry',
     category: 'Observability',
     description: 'Executes PromQL queries, searches Loki logs, and fetches Tempo distributed traces.',
     actionClass: 'read',
     requiresApproval: false,
     schemaParams: { query: 'string', timeRange: 'string' },
-    endpoint: 'mcp://obs-adapter.internal/v1/query',
+    endpoint: 'mcp://obs-adapter.internal:8080/v1/query',
     status: 'active'
   },
   {
     id: 'tool-deploy-prod',
+    serverId: 'server-cicd',
+    serverName: 'ArgoCD & CI/CD Pipeline Server',
     name: 'k8s_deploy_production_release',
     category: 'CI/CD',
     description: 'Promotes container image tags and synchronizes ArgoCD production manifests.',
     actionClass: 'deploy',
     requiresApproval: true,
     schemaParams: { service: 'string', imageTag: 'string', releaseNote: 'string' },
-    endpoint: 'mcp://k8s-adapter.internal/v1/deploy',
+    endpoint: 'mcp://k8s-adapter.internal:8080/v1/deploy',
     status: 'sandboxed'
   }
 ];

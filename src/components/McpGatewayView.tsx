@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { MCP_TOOLS_CATALOG } from '../data/mockData';
-import { MCPTool } from '../types';
+import { MCP_TOOLS_CATALOG, MCP_SERVERS_CATALOG } from '../data/mockData';
+import { MCPTool, MCPServer } from '../types';
 import { 
   Network, 
   ShieldAlert, 
@@ -13,10 +13,16 @@ import {
   CheckCircle2, 
   AlertCircle,
   Clock,
-  Layers
+  Layers,
+  Server,
+  Filter,
+  SlidersHorizontal,
+  KeyRound,
+  ExternalLink
 } from 'lucide-react';
 
 export const McpGatewayView: React.FC = () => {
+  const [selectedServerId, setSelectedServerId] = useState<string | 'all'>('all');
   const [selectedTool, setSelectedTool] = useState<MCPTool>(MCP_TOOLS_CATALOG[1]); // git_create_draft_pr
   const [toolParams, setToolParams] = useState<string>(JSON.stringify({
     repo: "light-weight-agentic/payment-core",
@@ -27,6 +33,24 @@ export const McpGatewayView: React.FC = () => {
 
   const [executing, setExecuting] = useState(false);
   const [toolResult, setToolResult] = useState<any>(null);
+
+  // Filter tools based on selected MCP Server tile
+  const filteredTools = selectedServerId === 'all' 
+    ? MCP_TOOLS_CATALOG 
+    : MCP_TOOLS_CATALOG.filter(t => t.serverId === selectedServerId || t.category.toLowerCase() === selectedServerId.toLowerCase());
+
+  const handleServerTileClick = (serverId: string) => {
+    if (selectedServerId === serverId) {
+      setSelectedServerId('all');
+    } else {
+      setSelectedServerId(serverId);
+      // Auto-select first tool in this server
+      const firstTool = MCP_TOOLS_CATALOG.find(t => t.serverId === serverId);
+      if (firstTool) {
+        handleToolSelect(firstTool);
+      }
+    }
+  };
 
   const handleToolSelect = (tool: MCPTool) => {
     setSelectedTool(tool);
@@ -229,17 +253,107 @@ export const McpGatewayView: React.FC = () => {
         </div>
       </div>
 
+      {/* Grouping of Configured MCP Servers Tiles */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Server className="w-4 h-4 text-sky-400" />
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+              Configured MCP Servers ({MCP_SERVERS_CATALOG.length} Running)
+            </h3>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-[11px] text-slate-400">Filter View:</span>
+            <button
+              onClick={() => setSelectedServerId('all')}
+              className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                selectedServerId === 'all'
+                  ? 'bg-sky-500 text-slate-950 font-bold shadow-sm'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              Show All ({MCP_TOOLS_CATALOG.length} Tools)
+            </button>
+          </div>
+        </div>
+
+        {/* MCP Server Tiles Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          {MCP_SERVERS_CATALOG.map((server) => {
+            const isSelected = selectedServerId === server.id;
+            const toolsForServer = MCP_TOOLS_CATALOG.filter(t => t.serverId === server.id);
+            const serverToolCount = toolsForServer.length;
+
+            return (
+              <div
+                key={server.id}
+                onClick={() => handleServerTileClick(server.id)}
+                className={`p-3.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between group ${
+                  isSelected
+                    ? 'bg-sky-950/40 border-sky-500 ring-2 ring-sky-500/40 shadow-lg shadow-sky-500/10'
+                    : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+                      {server.category}
+                    </span>
+                    <span className="flex items-center space-x-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span>{server.status}</span>
+                    </span>
+                  </div>
+
+                  <h4 className="font-bold text-xs text-white group-hover:text-sky-300 transition-colors line-clamp-1">
+                    {server.name}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                    {server.description}
+                  </p>
+                </div>
+
+                <div className="mt-3 pt-2.5 border-t border-slate-800/80 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Available Tools:</span>
+                    <span className="font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
+                      {serverToolCount} {serverToolCount === 1 ? 'tool' : 'tools'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 truncate">
+                    <span className="text-slate-400 flex items-center space-x-1">
+                      <KeyRound className="w-2.5 h-2.5" />
+                      <span className="truncate max-w-[85px]">{server.authType}</span>
+                    </span>
+                    <span className="text-slate-400 font-mono">:8080</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Main 2-Column Interface: Catalog & Interactive Tool Sandbox */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Tool Registry Cards */}
         <div className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered MCP Adapters:</h3>
-            <span className="text-xs text-slate-500 font-mono">{MCP_TOOLS_CATALOG.length} adapters active</span>
+            <div className="flex items-center space-x-2">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-sky-400" />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                {selectedServerId === 'all' 
+                  ? 'All Registered Tools:' 
+                  : `Tools for ${MCP_SERVERS_CATALOG.find(s => s.id === selectedServerId)?.name}:`}
+              </h3>
+            </div>
+            <span className="text-xs text-slate-500 font-mono">
+              {filteredTools.length} {filteredTools.length === 1 ? 'tool' : 'tools'} listed
+            </span>
           </div>
 
           <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1">
-            {MCP_TOOLS_CATALOG.map((tool) => {
+            {filteredTools.map((tool) => {
               const isSelected = selectedTool.id === tool.id;
               return (
                 <div
@@ -262,9 +376,16 @@ export const McpGatewayView: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400 leading-snug">{tool.description}</p>
-                  <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-slate-500">
-                    <span>Category: {tool.category}</span>
-                    <span>{tool.requiresApproval ? '⚠️ Requires Approval' : '✓ Auto Permitted'}</span>
+                  
+                  {/* Server grouping indicator pill */}
+                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-slate-400 flex items-center space-x-1">
+                      <Server className="w-2.5 h-2.5 text-sky-400" />
+                      <span className="text-slate-300 font-medium">{tool.serverName || tool.category}</span>
+                    </span>
+                    <span className={tool.requiresApproval ? 'text-amber-400 font-semibold' : 'text-emerald-400'}>
+                      {tool.requiresApproval ? '⚠️ Requires Approval' : '✓ Auto Permitted'}
+                    </span>
                   </div>
                 </div>
               );
@@ -277,7 +398,15 @@ export const McpGatewayView: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
               <div>
-                <h4 className="text-sm font-bold text-white font-mono">{selectedTool.name}</h4>
+                <div className="flex items-center space-x-2">
+                  <h4 className="text-sm font-bold text-white font-mono">{selectedTool.name}</h4>
+                  {selectedTool.serverName && (
+                    <span className="text-[10px] font-mono bg-sky-500/10 text-sky-300 border border-sky-500/20 px-2 py-0.5 rounded flex items-center space-x-1">
+                      <Server className="w-2.5 h-2.5" />
+                      <span>{selectedTool.serverName}</span>
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-400 mt-0.5">{selectedTool.endpoint}</p>
               </div>
               <div className="flex items-center space-x-2">

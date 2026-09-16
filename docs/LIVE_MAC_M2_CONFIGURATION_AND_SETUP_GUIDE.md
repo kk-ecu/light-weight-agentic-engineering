@@ -88,6 +88,15 @@ Open 3 terminal windows:
 * **Tab 2 (MCP Gateway :8080)**: `cd planes/tool-integration-plane/services/mcp-gateway && uv run uvicorn app.main:app --port 8080 --reload`
 * **Tab 3 (Agent Gateway :8000)**: `cd planes/agent-control-plane/services/agent-gateway && uv run uvicorn app.main:app --port 8000 --reload`
 
+#### Configured MCP Servers & Tool Endpoints (:8080)
+The MCP Gateway integrates 6 decoupled server adapters mediating 9 total tools:
+1. **Git VCS MCP Server**: 2 tools (`git_read_repository`, `git_create_draft_pr`) - Secrets Broker JIT.
+2. **Jira & Agile Lifecycle Server**: 1 tool (`jira_get_issue`) - OAuth2 Bearer.
+3. **ArgoCD & CI/CD Pipeline Server**: 2 tools (`ci_get_pipeline_status`, `k8s_deploy_production_release`) - Zero-Trust Token (HITL approval required for deploy).
+4. **Headless Content & ADR CMS Server**: 2 tools (`cms_get_content`, `cms_update_draft`) - Secrets Broker JIT.
+5. **Enterprise CRM Concierge Server**: 1 tool (`crm_create_lead`) - OAuth2 Bearer.
+6. **OpenTelemetry & Metrics Server**: 1 tool (`observability_query_telemetry`) - Zero-Trust Token.
+
 ### Step 5: Start the Web UI
 ```bash
 npm install
