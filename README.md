@@ -463,7 +463,48 @@ sequenceDiagram
 
 ## 6. Local Setup & Runbook (Step-by-Step with Expected Outputs)
 
+### ⚡ The 3 Definitive Mac M2 Commands to Run the Entire Workspace
+
+To run the entire enterprise engineering platform locally on an Apple Silicon M2 (16GB RAM) with local Ollama, execute these **three commands**:
+
+```bash
+# Command 1: Setup & Toolchain Sync (Installs uv, pnpm, Python deps, and pulls Ollama models)
+make setup-m2
+
+# Command 2: Infrastructure Startup (Boots PostgreSQL/pgvector, Redis, Temporal, and Ollama)
+make start-m2
+
+# Command 3: Launch Full-Stack Platform & Experience Plane (Port 3000)
+pnpm dev
+```
+
+> 💡 **Want all 12 ports listening concurrently in one command?**  
+> Run `make start-all` — this boots the infrastructure containers, starts all 6 Python microservice gateways (ports 8001–8006), and boots the Experience Plane on port 3000!  
+> Run `make sanity-ports` at any time to audit the health of all 12 ports.
+
+#### 📊 How the 3 Commands Cover All 12 Physical Ports:
+
+| Port | Service Name | Plane | Process Location | Command Responsible |
+| :--- | :--- | :--- | :--- | :--- |
+| **3000** | Full-Stack Gateway & UI | Experience Plane | Host Node.js | `pnpm dev` / `make start-all` |
+| **5432** | PostgreSQL 16 + pgvector | Knowledge Plane | Container (Podman/Docker) | `make start-m2` |
+| **6379** | Redis 7 (Cache/Idempotency) | Operations Plane | Container (Podman/Docker) | `make start-m2` |
+| **7233** | Temporal Server Engine | Workflow Plane | Container (Podman/Docker) | `make start-m2` |
+| **8233** | Temporal Web UI | Workflow Plane | Container (Podman/Docker) | `make start-m2` |
+| **11434**| Ollama (Metal GPU Shaders)| Agent Control Plane | Host Native or Container | `make setup-m2` / `make start-m2` |
+| **8001** | Agent Gateway | Agent Control Plane | Host Python (FastAPI) | `make start-gateways` / `make start-all`* |
+| **8002** | LLM Gateway & Router | Agent Control Plane | Host Python (FastAPI) | `make start-gateways` / `make start-all`* |
+| **8003** | MCP Tool Brokerage | Tool Integration Plane | Host Python (FastAPI) | `make start-gateways` / `make start-all`* |
+| **8004** | Knowledge Retrieval | Knowledge Plane | Host Python (FastAPI) | `make start-gateways` / `make start-all`* |
+| **8005** | Approval Service | Workflow Plane | Host Python (FastAPI) | `make start-gateways` / `make start-all`* |
+| **8006** | Policy Enforcement | Governance Plane | Host Python (FastAPI) | `make start-gateways` / `make start-all`* |
+
+*\*Note: When running `pnpm dev` alone, Port 3000 contains an integrated high-performance reverse proxy and in-process backend API suite (`/api/agent/*`, `/api/llm/*`, `/api/mcp/*`, `/api/knowledge/*`, `/api/system/*`) that mirrors and routes all gateway traffic seamlessly. When `make start-gateways` or `make start-all` is invoked, dedicated standalone FastAPI microservices listen on individual ports 8001–8006.*
+
+---
+
 ### 1-Click Automated Shell Script
+Alternatively, run the complete interactive installer script:
 
 ```bash
 chmod +x infra/scripts/setup-mac-m2.sh

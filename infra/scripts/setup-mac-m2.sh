@@ -54,25 +54,40 @@ if ! command -v uv &> /dev/null; then
 fi
 echo -e "${GREEN}✔ Astral UV ready: $(uv --version)${NC}"
 
-if ! command -v podman &> /dev/null; then
-    echo -e "${RED}[ERROR] Podman is not installed.${NC}"
-    echo "       Please install Podman for macOS: 'brew install podman podman-compose'"
-    exit 1
-else
-    echo -e "${GREEN}✔ Podman engine ready: $(podman --version)${NC}"
-fi
+# Detect Container Engine (Podman or Docker Desktop / OrbStack / Colima)
+CONTAINER_CLI=""
+COMPOSE_FILE=""
+EXEC_CLI=""
 
-# Ensure Podman machine is running
-if ! podman machine info &> /dev/null; then
-    echo -e "${YELLOW}==> Initializing Rootless Podman Machine (4 CPU, 6GB RAM)...${NC}"
-    podman machine init --cpus 4 --memory 6144 --disk-size 40 --now
-else
+if command -v podman &> /dev/null && podman machine info &> /dev/null; then
+    CONTAINER_CLI="podman compose -f podman-compose.local.yml"
+    EXEC_CLI="podman exec -i"
+    echo -e "${GREEN}✔ Rootless Podman engine detected: $(podman --version)${NC}"
     if [ "$(podman machine info --format '{{.Host.MachineState}}' 2>/dev/null)" != "Running" ]; then
         echo -e "${YELLOW}==> Starting Podman Machine...${NC}"
         podman machine start
     fi
+elif command -v docker &> /dev/null && docker info &> /dev/null; then
+    CONTAINER_CLI="docker compose -f docker-compose.local.yml"
+    EXEC_CLI="docker exec -i"
+    echo -e "${GREEN}✔ Docker engine detected: $(docker --version)${NC}"
+elif command -v podman &> /dev/null; then
+    CONTAINER_CLI="podman compose -f podman-compose.local.yml"
+    EXEC_CLI="podman exec -i"
+    echo -e "${YELLOW}==> Initializing Rootless Podman Machine (4 CPU, 6GB RAM)...${NC}"
+    podman machine init --cpus 4 --memory 6144 --disk-size 40 --now || true
+elif command -v docker &> /dev/null; then
+    CONTAINER_CLI="docker compose -f docker-compose.local.yml"
+    EXEC_CLI="docker exec -i"
+    echo -e "${YELLOW}==> Docker command found. Please ensure Docker Desktop / daemon is started.${NC}"
+else
+    echo -e "${RED}[ERROR] Neither Podman nor Docker is installed.${NC}"
+    echo "       Please install one of the container engines:"
+    echo "       - Docker Desktop: brew install --cask docker"
+    echo "       - Rootless Podman: brew install podman podman-compose"
+    exit 1
 fi
-echo -e "${GREEN}✔ Rootless Podman machine is healthy.${NC}\n"
+echo -e "${GREEN}✔ Container orchestration engine ready.${NC}\n"
 
 # 3. Workspace Dependency Synchronization
 echo -e "${BOLD}[3/7] Synchronizing Python & Node Dependencies...${NC}"
@@ -88,34 +103,34 @@ else
 fi
 echo -e "${GREEN}✔ All language dependencies synchronized.${NC}\n"
 
-# 4. Boot Local Infrastructure Containers (Podman Compose)
+# 4. Boot Local Infrastructure Containers
 echo -e "${BOLD}[4/7] Booting Local Containers (Ollama, PostgreSQL+pgvector, Redis, Temporal)...${NC}"
-podman compose -f podman-compose.local.yml up -d
+$CONTAINER_CLI up -d
 
 echo "       Waiting for PostgreSQL pgvector to become ready on port 5432..."
-until podman exec -i agentic-postgres pg_isready -U agentic_admin -d agentic_agentic_db &> /dev/null; do
+until $EXEC_CLI agentic-postgres pg_isready -U agentic_admin -d agentic_agentic_db &> /dev/null; do
     sleep 1
 done
-echo -e "${GREEN}✔ PostgreSQL container healthy with pgvector enabled (Rootless Podman).${NC}\n"
+echo -e "${GREEN}✔ PostgreSQL container healthy with pgvector enabled.${NC}\n"
 
 # 5. Model Acquisition & Metal GPU Verification
 echo -e "${BOLD}[5/7] Verifying Local Ollama Models in Metal Memory...${NC}"
 if command -v ollama &> /dev/null; then
-    echo "       Pulling lightweight models into Ollama..."
+    echo "       Native Ollama detected! Pulling lightweight models into Metal GPU memory..."
     ollama pull llama3.2:3b
     ollama pull qwen2.5-coder:7b
-    echo -e "${GREEN}✔ Models loaded: llama3.2:3b, qwen2.5-coder:7b.${NC}"
+    echo -e "${GREEN}✔ Models loaded into native Apple Silicon Metal: llama3.2:3b, qwen2.5-coder:7b.${NC}"
 else
-    echo "       Ollama running inside container. Pulling via podman exec..."
-    podman exec -i agentic-ollama ollama pull llama3.2:3b
-    podman exec -i agentic-ollama ollama pull qwen2.5-coder:7b
+    echo "       Ollama running inside container. Pulling via container exec..."
+    $EXEC_CLI agentic-ollama ollama pull llama3.2:3b
+    $EXEC_CLI agentic-ollama ollama pull qwen2.5-coder:7b
     echo -e "${GREEN}✔ Container models ready.${NC}"
 fi
 echo ""
 
 # 6. Database Seeding & Extension Verification
 echo -e "${BOLD}[6/7] Testing pgvector Cosine Distance Query in PostgreSQL...${NC}"
-COSINE_TEST=$(podman exec -i agentic-postgres psql -U agentic_admin -d agentic_agentic_db -t -A -c "SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector;")
+COSINE_TEST=$($EXEC_CLI agentic-postgres psql -U agentic_admin -d agentic_agentic_db -t -A -c "SELECT '[1,2,3]'::vector <=> '[1,2,4]'::vector;")
 echo "       Cosine distance calculation output: $COSINE_TEST"
 echo -e "${GREEN}✔ pgvector extension verified.${NC}\n"
 
