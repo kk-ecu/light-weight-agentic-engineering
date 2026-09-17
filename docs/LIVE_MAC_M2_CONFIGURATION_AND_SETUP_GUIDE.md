@@ -1,7 +1,7 @@
 # 🍏 Apple Silicon Mac M2 Live Production Setup Guide & Execution Manual
 ## `light-weight-agentic-engineering` Platform
 
-This master guide details the exact process for configuring and running the **6-Plane Agentic Engineering Platform** locally on an **Apple Silicon Mac M2** (including M2 Pro, M2 Max, M3, and M4) with zero cloud token bills during development.
+This master guide details the exact process for configuring and running the **6-Plane Agentic Engineering Platform** locally on an **Apple Silicon Mac M2** (including M2 Pro and M2 Max) with zero cloud token bills during development.
 
 ---
 
@@ -20,7 +20,7 @@ To understand the 6-Plane system, consider how an enterprise commercial kitchen 
 
 ## 2. Hardware & Runtime Prerequisites
 
-* **Hardware**: Apple Mac with Apple Silicon M2, M2 Pro, M2 Max (M3/M4 also supported).
+* **Hardware**: Apple Mac with Apple Silicon M2, M2 Pro, M2 Max.
 * **Unified RAM**: 16 GB unified memory recommended (peak memory usage is ~10.2 GB across all services).
 * **Disk Space**: 15 GB free for Docker volumes and Ollama model weights.
 * **Software**:

@@ -29,9 +29,9 @@ Present this compliance mapping to demonstrate why this architecture satisfies c
 
 Provide clear sizing guidelines for team leads scaling this platform across their engineering organizations:
 
-### Tier 1: Local Developer Machine (Personal Mac M2/M3/M4)
+### Tier 1: Local Developer Machine (Personal Mac M2)
 - **Target**: Individual developer running local iterative coding loops.
-- **Hardware**: Apple Silicon Mac (M2, M2 Pro, M2 Max, M3, M4) with 16 GB+ Unified RAM.
+- **Hardware**: Apple Silicon Mac (M2, M2 Pro, M2 Max) with 16 GB+ Unified RAM.
 - **Runtime**: Native Ollama Metal Engine + Rootless Podman Machine (4 CPU, 6 GB RAM).
 - **Cost**: **$0.00 / month** (Zero cloud infrastructure cost).
 

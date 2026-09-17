@@ -1,7 +1,7 @@
 # 🍏 Apple Silicon Mac M2 Local Setup Guide & Architecture Manual
 ## `light-weight-agentic-engineering` Platform
 
-This document is the definitive, step-by-step manual for provisioning, running, and verifying the complete **6-Plane Agentic Engineering Platform** locally on an **Apple Silicon Mac M2** (or M2 Pro, M2 Max, M3, M4) with zero cloud token expenditure during development.
+This document is the definitive, step-by-step manual for provisioning, running, and verifying the complete **6-Plane Agentic Engineering Platform** locally on an **Apple Silicon Mac M2** (or M2 Pro, M2 Max) with zero cloud token expenditure during development.
 
 ---
 
@@ -31,7 +31,7 @@ This document is the definitive, step-by-step manual for provisioning, running, 
 ## 1. Target Architecture & Hardware Prerequisites
 
 ### Hardware Requirements
-- **Machine**: Apple Mac with Apple Silicon M2, M2 Pro, M2 Max, or newer (M3/M4 also fully supported).
+- **Machine**: Apple Mac with Apple Silicon M2, M2 Pro, M2 Max.
 - **Unified RAM**: 16 GB minimum recommended (Stack uses ~5.6 GB at peak inference).
 - **Disk Storage**: At least 15 GB free for Docker volumes and Ollama model weights.
 - **Operating System**: macOS Sonoma (14.x) or macOS Sequoia (15.x).
@@ -281,7 +281,7 @@ uname -m && sysctl -n machdep.cpu.brand_string
 #### Expected Terminal Output:
 ```text
 arm64
-Apple M2 Pro (or Apple M2 / Apple M2 Max / Apple M3 / Apple M4)
+Apple M2 Pro (or Apple M2 / Apple M2 Max)
 ```
 
 > **Comparison Rule**: If this command outputs `x86_64`, your terminal application is configured to run under Rosetta. In Finder, open `/Applications/Utilities/Terminal.app`, press `Cmd + I`, and ensure **"Open using Rosetta"** is **UNCHECKED**.

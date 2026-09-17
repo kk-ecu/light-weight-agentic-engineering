@@ -15,7 +15,8 @@ import {
   Clock,
   Sun,
   Moon,
-  Palette
+  Palette,
+  FileText
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -53,7 +54,8 @@ export const Navigation: React.FC<NavigationProps> = ({
     { id: 'mcp-gateway', label: '🔌 MCP Gateway', icon: Network, category: 'runtime' },
     { id: 'llm-gateway', label: '🧠 LLM Gateway', icon: Cpu, category: 'runtime' },
 
-    // ARCHITECTURE, DATA & VERIFICATION (6 tabs)
+    // ARCHITECTURE, DATA & VERIFICATION (7 tabs)
+    { id: 'architecture-doc', label: '📄 Enterprise Architecture Doc', icon: FileText, highlight: true, category: 'architecture' },
     { id: 'website', label: '🌐 Solution Discovery', icon: Globe, category: 'architecture' },
     { id: 'knowledge', label: '📚 Knowledge (pgvector)', icon: Database, category: 'architecture' },
     { id: 'c4-architecture', label: '📐 C4 & System Design', icon: Layers, category: 'architecture' },

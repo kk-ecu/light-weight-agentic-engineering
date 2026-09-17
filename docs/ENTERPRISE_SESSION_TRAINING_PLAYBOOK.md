@@ -23,7 +23,7 @@
 ### Presenter Ground Rules
 1. **100% Self-Contained**: You do not need to open any external website, cloud console, or documentation site during this presentation. Every architecture diagram, terminal command, payload, error code, and benchmark is documented in this playbook.
 2. **Zero Cloud Cost**: Every service demonstrated runs on local hardware. There are no OpenAI/Anthropic API bills, no cloud subscriptions, and zero external egress.
-3. **Reproducibility**: Any of the 1,000 engineers can follow this document line-by-line on their corporate Mac (M2/M3/M4, 16 GB RAM) and achieve identical results.
+3. **Reproducibility**: Any of the 1,000 engineers can follow this document line-by-line on their corporate Mac (M2, 16 GB RAM) and achieve identical results.
 
 ---
 
@@ -125,7 +125,7 @@ flowchart TD
 ## Module 2: Apple Silicon M2 Hardware Optimization & Memory Allocation
 
 ### 2.1 The Unified Memory Advantage
-Traditional x86 servers require copying data between CPU host RAM and GPU PCIe VRAM. Apple Silicon (M2/M3/M4) integrates CPU, GPU (Metal), and Neural Engine onto a **single unified high-bandwidth memory bus** (up to 100 GB/s on base M2, 200 GB/s on M2 Pro, 400 GB/s on M2 Max).
+Traditional x86 servers require copying data between CPU host RAM and GPU PCIe VRAM. Apple Silicon (M2) integrates CPU, GPU (Metal), and Neural Engine onto a **single unified high-bandwidth memory bus** (up to 100 GB/s on base M2, 200 GB/s on M2 Pro, 400 GB/s on M2 Max).
 
 ```mermaid
 flowchart TD
@@ -180,7 +180,7 @@ In an enterprise fleet, not all prompts require a heavyweight 70B cloud model. T
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **All Cloud (Claude 3.5)** | Anthropic Cloud | 310ms | Public Internet Egress | $135.00 / dev ($13,500/100 devs) | $0.00 (Baseline) |
 | **Hybrid (M2 Metal + Cloud)** | Local M2 + Gemini Fallback | 35ms (90% local) | Zero-Egress for 90% prompts | ~$13.50 / dev | **90% Savings ($145k/yr)** |
-| **Pure Local Apple Silicon** | Ollama Metal (M2/M3) | 24ms - 38ms | 100% Offline Airgapped | **$0.00 / month** | **100% Savings ($162k/yr)** |
+| **Pure Local Apple Silicon** | Ollama Metal (M2) | 24ms - 38ms | 100% Offline Airgapped | **$0.00 / month** | **100% Savings ($162k/yr)** |
 
 ---
 
@@ -322,7 +322,7 @@ uname -m
 # Expected Output: arm64
 
 sysctl -n machdep.cpu.brand_string
-# Expected Output: Apple M2 (or Apple M2 Pro / Apple M3 / Apple M4)
+# Expected Output: Apple M2 (or Apple M2 Pro / Apple M2 Max)
 ```
 
 ### Step 1.2: Verify Memory Capacity (16 GB Recommended)

@@ -163,7 +163,7 @@ flowchart TD
 
 ## 3. Hardware Optimization & Memory Budget (Apple Silicon M2)
 
-The platform is designed to operate entirely locally within the unified memory architecture of standard **Apple Silicon Macs (M2, M2 Pro, M2 Max, M3, M4)**:
+The platform is designed to operate entirely locally within the unified memory architecture of standard **Apple Silicon Macs (M2, M2 Pro, M2 Max)**:
 
 ```mermaid
 flowchart TD
@@ -523,7 +523,7 @@ uname -m && sysctl -n machdep.cpu.brand_string
 **Expected Terminal Output to Compare:**
 ```text
 arm64
-Apple M2 Pro (or Apple M2 / Apple M2 Max / Apple M3 / Apple M4)
+Apple M2 Pro (or Apple M2 / Apple M2 Max)
 ```
 
 ---

@@ -31,7 +31,7 @@ flowchart TD
         HostRAM -->|Slow copy over PCIe| PCIeBus --> DiscreteVRAM
     end
 
-    subgraph AppleM2["Apple Silicon M2 / M3 / M4 Architecture"]
+    subgraph AppleM2["Apple Silicon M2 Architecture"]
         direction TB
         UnifiedBus["Ultra-High-Bandwidth Unified Memory Bus\n(100 - 400 GB/s Direct Memory Access)"]
         M2Cores["CPU Cores + Metal GPU Cores + Neural Engine"]

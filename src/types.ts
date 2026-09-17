@@ -1,5 +1,6 @@
 export type ActiveTab = 
   | 'website'
+  | 'architecture-doc'
   | 'agent-gateway'
   | 'mcp-gateway'
   | 'llm-gateway'

@@ -9,7 +9,7 @@ Running production multi-agent engineering platforms against commercial cloud LL
 2. **Security & Compliance Risk**: Proprietary intellectual property, codebases, and credentials transmitted to third-party endpoints.
 3. **Availability Risk**: Rate limiting and network latency disruptions.
 
-Apple Silicon Macs (M2, M2 Pro, M2 Max, M3, M4) feature a unified memory architecture where CPU, GPU (Metal), and Neural Engine share access to a single high-bandwidth memory pool (up to 400 GB/s on Max/Ultra chips).
+Apple Silicon Macs (M2, M2 Pro, M2 Max) feature a unified memory architecture where CPU, GPU (Metal), and Neural Engine share access to a single high-bandwidth memory pool (up to 400 GB/s on Max/Ultra chips).
 
 ## Decision
 We mandate local inference via Ollama and `llama.cpp` using native Apple Silicon Metal shaders for all development and engineering assistant workflows:

@@ -311,7 +311,7 @@ export const LocalM2RunnerView: React.FC<LocalM2RunnerViewProps> = ({
       subtitle: 'Ensure terminal is executing natively on Apple Silicon (arm64), not emulated x86 Rosetta.',
       command: 'uname -m && sysctl -n machdep.cpu.brand_string',
       expectedOutput: `arm64
-Apple M2 Pro (or Apple M2 / Apple M2 Max / Apple M3 / Apple M4)`,
+Apple M2 Pro (or Apple M2 / Apple M2 Max)`,
       notes: 'If this outputs x86_64, disable "Open using Rosetta" in your Terminal application info panel.'
     },
     {
@@ -2565,7 +2565,7 @@ echo -e "\\n\${BOLD}\${GREEN}✔ All critical microservice verification checks p
 
             {/* Modal Footer */}
             <div className="px-5 py-3 border-t border-slate-800 bg-slate-950/50 flex items-center justify-between text-xs text-slate-400">
-              <span>Ready for execution on Apple Silicon Mac M2 / M3 / M4</span>
+              <span>Ready for execution on Apple Silicon Mac M2</span>
               <button
                 onClick={() => setScriptModalContent(null)}
                 className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs"

@@ -18,6 +18,7 @@ import { CodebaseExplorerView } from './components/CodebaseExplorerView';
 import { LocalM2RunnerView } from './components/LocalM2RunnerView';
 import { TestSuiteView } from './components/TestSuiteView';
 import { EnterpriseReviewView } from './components/EnterpriseReviewView';
+import { ArchitectureDocumentView } from './components/ArchitectureDocumentView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('local-m2-runner');
@@ -67,6 +68,10 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'architecture-doc' && (
+          <ArchitectureDocumentView onNavigateTab={setActiveTab} />
+        )}
+
         {activeTab === 'agent-gateway' && <AgentGatewayView />}
 
         {activeTab === 'mcp-gateway' && <McpGatewayView />}
@@ -77,7 +82,9 @@ export default function App() {
 
         {activeTab === 'knowledge' && <KnowledgeServiceView />}
 
-        {activeTab === 'c4-architecture' && <C4ArchitectureView />}
+        {activeTab === 'c4-architecture' && (
+          <C4ArchitectureView onNavigateDoc={() => setActiveTab('architecture-doc')} />
+        )}
 
         {activeTab === 'plane-codebase' && <CodebaseExplorerView />}
 
@@ -93,15 +100,36 @@ export default function App() {
       {/* Enterprise Footer */}
       <footer className="bg-slate-900/90 border-t border-slate-800 text-xs text-slate-400 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-white">light-weight-agentic-engineering</span>
+          <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+            <button 
+              onClick={() => setActiveTab('website')} 
+              className="font-bold text-white hover:text-amber-400 transition-colors"
+              title="Open Solution Discovery"
+            >
+              light-weight-agentic-engineering
+            </button>
             <span>·</span>
-            <span>Enterprise 6-Plane Architecture</span>
+            <button 
+              onClick={() => setActiveTab('c4-architecture')} 
+              className="text-slate-300 hover:text-amber-400 transition-colors"
+              title="Open C4 & System Design"
+            >
+              Enterprise 6-Plane Architecture
+            </button>
             <span>·</span>
-            <span className="text-amber-400 font-mono">Mac M2 Apple Silicon</span>
+            <button 
+              onClick={() => setActiveTab('local-m2-runner')} 
+              className="text-amber-400 font-mono hover:underline transition-all flex items-center space-x-1"
+              title="Open Mac M2 Runner & Port Doctor"
+            >
+              <span>Mac M2 Apple Silicon</span>
+            </button>
           </div>
 
           <div className="flex items-center space-x-4 text-slate-400">
+            <button onClick={() => setActiveTab('architecture-doc')} className="hover:text-amber-400 transition-colors font-bold text-amber-400 flex items-center space-x-1">
+              <span>📄 Architecture Spec & 6 Steps</span>
+            </button>
             <button onClick={() => setActiveTab('temporal')} className="hover:text-amber-400 transition-colors font-medium">
               ⏱️ Temporal Engine (:7233)
             </button>

@@ -173,7 +173,7 @@ export const ARTICLE_WORKSHOP_KEYNOTE_PLAYBOOK = `# Hands-On Workshop & Keynote 
 ### 3 Anchor Messages to Deliver:
 1. **The Fallacy of Prompt Loops**: Chatbot wrappers fail in production because they lack state persistence. Real enterprise systems require **Cyclic Graph State Machines (LangGraph)** paired with **Durable Execution Engines (Temporal)**.
 2. **The Zero-Trust Boundary**: Never give an LLM direct access to internal databases or API tokens. Every external call must pass through a capability-brokered **Model Context Protocol (MCP)** gateway with strict action classification (Read vs. Draft vs. Deploy).
-3. **Workstation Hardware Sovereignty**: 85% of developer tasks can run on Apple Silicon (M2/M3) at **$0 cloud token spend** with sub-50ms latency and 100% data privacy.
+3. **Workstation Hardware Sovereignty**: 85% of developer tasks can run on Apple Silicon (M2) at **$0 cloud token spend** with sub-50ms latency and 100% data privacy.
 
 ---
 

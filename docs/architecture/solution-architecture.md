@@ -2,7 +2,7 @@
 
 ## 1. Executive Architecture Summary
 
-`light-weight-agentic-engineering` is an enterprise architecture pattern engineered for local execution on **Apple Silicon (M2/M3/M4)** hardware with zero external token leakage, zero API subscription costs, and verifiable human-in-the-loop governance.
+`light-weight-agentic-engineering` is an enterprise architecture pattern engineered for local execution on **Apple Silicon (M2)** hardware with zero external token leakage, zero API subscription costs, and verifiable human-in-the-loop governance.
 
 The platform decouples agentic capabilities across six isolated architectural planes:
 
