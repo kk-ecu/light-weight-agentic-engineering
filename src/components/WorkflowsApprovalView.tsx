@@ -118,9 +118,10 @@ export const WorkflowsApprovalView: React.FC = () => {
   };
 
   const handleApprove = (wfId: string) => {
+    let updatedWf: TemporalWorkflow | null = null;
     setWorkflows(prev => prev.map(wf => {
       if (wf.id === wfId) {
-        return {
+        updatedWf = {
           ...wf,
           status: 'COMPLETED',
           currentStep: 'Approved by Release Manager · Staging Deployment Triggered via ArgoCD',
@@ -130,27 +131,36 @@ export const WorkflowsApprovalView: React.FC = () => {
           ],
           pendingApproval: undefined
         };
+        return updatedWf;
       }
       return wf;
     }));
 
+    if (updatedWf) {
+      setSelectedWorkflow(updatedWf);
+    }
     setApprovalDecisionMade('APPROVED');
   };
 
   const handleReject = (wfId: string) => {
+    let updatedWf: TemporalWorkflow | null = null;
     setWorkflows(prev => prev.map(wf => {
       if (wf.id === wfId) {
-        return {
+        updatedWf = {
           ...wf,
           status: 'FAILED',
           currentStep: 'Rejected by Human Approver (Release Cancelled)',
           activities: wf.activities.map(a => a.name === 'TemporalApprovalGate' ? { ...a, status: 'failed' as const, details: 'Sign-off denied by approver' } : a),
           pendingApproval: undefined
         };
+        return updatedWf;
       }
       return wf;
     }));
 
+    if (updatedWf) {
+      setSelectedWorkflow(updatedWf);
+    }
     setApprovalDecisionMade('REJECTED');
   };
 
