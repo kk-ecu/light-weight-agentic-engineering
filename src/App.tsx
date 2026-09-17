@@ -19,6 +19,7 @@ import { LocalM2RunnerView } from './components/LocalM2RunnerView';
 import { TestSuiteView } from './components/TestSuiteView';
 import { EnterpriseReviewView } from './components/EnterpriseReviewView';
 import { ArchitectureDocumentView } from './components/ArchitectureDocumentView';
+import { OVERALL_ENTERPRISE_RATING } from './data/enterpriseReviewData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('local-m2-runner');
@@ -143,7 +144,7 @@ export default function App() {
               Verification Matrix
             </button>
             <button onClick={() => setActiveTab('enterprise-review')} className="hover:text-amber-400 transition-colors font-bold text-amber-300">
-              Score: 9.7/10
+              Score: {OVERALL_ENTERPRISE_RATING}/10
             </button>
           </div>
         </div>
