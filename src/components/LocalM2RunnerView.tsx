@@ -766,9 +766,32 @@ index a4189e2..e891b04 100644
                 100% Local Inference & Zero-Cost Token Execution
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Complete step-by-step shell automation, side-by-side terminal verification, and full C4 architectural diagrams for Apple Silicon M2.
-            </p>
+            <div className="flex items-center space-x-2 mt-2">
+              <button
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = '/docs/ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md';
+                  link.setAttribute('download', 'ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md');
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className="inline-flex items-center space-x-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-semibold border border-slate-700 transition-colors"
+                title="Download Master Markdown Specification for Apple Silicon M2 & Ollama"
+              >
+                <Download className="w-3.5 h-3.5 text-amber-400" />
+                <span>Download Master Spec (`.md`)</span>
+              </button>
+              {onNavigateTab && (
+                <button
+                  onClick={() => onNavigateTab('enterprise-spec')}
+                  className="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 text-slate-400" />
+                  <span>View Full Spec</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Sub-Tab Navigation Switcher */}

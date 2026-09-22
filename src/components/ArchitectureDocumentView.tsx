@@ -58,6 +58,21 @@ export const ArchitectureDocumentView: React.FC<ArchitectureDocumentViewProps> =
 
           <div className="flex items-center space-x-3 self-start md:self-auto">
             <button
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = '/docs/ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md';
+                link.setAttribute('download', 'ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 flex items-center space-x-1.5 transition-colors"
+              title="Download Master Markdown Specification"
+            >
+              <Download className="w-3.5 h-3.5 text-amber-400" />
+              <span>Download Spec (.md)</span>
+            </button>
+            <button
               onClick={() => copyToClipboard(window.location.href, 'share')}
               className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 flex items-center space-x-2 transition-colors"
             >

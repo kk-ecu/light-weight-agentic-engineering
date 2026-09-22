@@ -602,6 +602,14 @@ ${systemPrompt ? `> **System Policy**: ${systemPrompt}\n\n` : ''}Regarding your 
     });
   });
 
+  // Serve Master Enterprise Architecture Specification File
+  app.get(["/docs/ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md", "/api/spec/download"], (req, res) => {
+    const specPath = path.join(process.cwd(), "docs", "ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md");
+    res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="ENTERPRISE_M2_LOCAL_OLLAMA_SPECIFICATION.md"');
+    res.sendFile(specPath);
+  });
+
   // Vite development middleware
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
